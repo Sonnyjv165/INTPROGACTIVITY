@@ -26,6 +26,65 @@ enum class MembershipTier {
         DIAMOND_PLUS, BLACK_DIAMOND -> 2.5
     }
 
+    fun discountPercent(): Double = when (this) {
+        GUEST, SILVER -> 0.0
+        GOLD -> 0.05
+        PLATINUM -> 0.10
+        DIAMOND -> 0.15
+        DIAMOND_PLUS -> 0.20
+        BLACK_DIAMOND -> 0.25
+    }
+
+    fun discountLabel(): String = when (this) {
+        GUEST, SILVER -> "No discount"
+        GOLD -> "5% off flights"
+        PLATINUM -> "10% off flights"
+        DIAMOND -> "15% off flights"
+        DIAMOND_PLUS -> "20% off flights"
+        BLACK_DIAMOND -> "25% off flights"
+    }
+
+    fun benefits(): List<String> = when (this) {
+        GUEST -> listOf("Register to start earning Trip Coins")
+        SILVER -> listOf(
+            "Earn 1 coin per ₱20 spent",
+            "Standard booking access",
+            "Coins never expire"
+        )
+        GOLD -> listOf(
+            "5% discount on all flights",
+            "1.2× Trip Coin multiplier",
+            "Priority email support"
+        )
+        PLATINUM -> listOf(
+            "10% discount on all flights",
+            "1.5× Trip Coin multiplier",
+            "Priority phone support",
+            "Free standard seat selection"
+        )
+        DIAMOND -> listOf(
+            "15% discount on all flights",
+            "2.0× Trip Coin multiplier",
+            "Free seat selection",
+            "Airport lounge access",
+            "Dedicated support line"
+        )
+        DIAMOND_PLUS -> listOf(
+            "20% discount on all flights",
+            "2.5× Trip Coin multiplier",
+            "Complimentary seat upgrade",
+            "Lounge + guest access",
+            "Personal travel agent"
+        )
+        BLACK_DIAMOND -> listOf(
+            "25% discount on all flights",
+            "2.5× Trip Coin multiplier",
+            "First class upgrade priority",
+            "Unlimited lounge access",
+            "24/7 dedicated concierge"
+        )
+    }
+
     fun displayName(): String = when (this) {
         GUEST -> "Guest"
         SILVER -> "Silver Member"
@@ -73,10 +132,10 @@ enum class MembershipTier {
         ): MembershipTier {
             if (currentTier == BLACK_DIAMOND) return BLACK_DIAMOND
             return when {
-                spendInLastYear >= 10_000.0 && currentTier == DIAMOND -> DIAMOND_PLUS
-                bookingsInLastYear >= 8 && spendInLastYear >= 1_000.0 && currentTier == PLATINUM -> DIAMOND
-                bookingsInLastYear >= 3 && currentTier == GOLD -> PLATINUM
-                totalBookings >= 1 && currentTier == SILVER -> GOLD
+                spendInLastYear >= 2_000_000.0 && currentTier == DIAMOND -> DIAMOND_PLUS
+                bookingsInLastYear >= 25 && spendInLastYear >= 500_000.0 && currentTier == PLATINUM -> DIAMOND
+                bookingsInLastYear >= 10 && spendInLastYear >= 50_000.0 && currentTier == GOLD -> PLATINUM
+                totalBookings >= 5 && currentTier == SILVER -> GOLD
                 else -> currentTier
             }
         }

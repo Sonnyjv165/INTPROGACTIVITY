@@ -22,16 +22,40 @@
             android:textSize="22sp"
             android:textStyle="bold" />
 
-        <com.google.android.material.tabs.TabLayout
-            android:id="@+id/tabLayout"
+        <!-- Custom tab bar: full contrast, no Material3 interference -->
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="44dp"
             android:layout_marginTop="12dp"
-            app:tabBackground="@android:color/transparent"
-            app:tabIndicatorColor="@color/brand_on_primary"
-            app:tabSelectedTextColor="@color/brand_on_primary"
-            app:tabTextColor="#AAFFFFFF"
-            app:tabMode="fixed" />
+            android:background="#33FFFFFF"
+            android:orientation="horizontal"
+            android:padding="4dp">
+
+            <TextView
+                android:id="@+id/tabUpcoming"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Upcoming"
+                android:textColor="@color/brand_primary"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:background="@drawable/bg_tab_selected" />
+
+            <TextView
+                android:id="@+id/tabPast"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Past"
+                android:textColor="#CCFFFFFF"
+                android:textSize="14sp"
+                android:textStyle="normal"
+                android:background="@android:color/transparent" />
+
+        </LinearLayout>
 
     </LinearLayout>
 
@@ -40,7 +64,7 @@
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
+        android:layout_gravity="center_horizontal"
         android:layout_marginTop="48dp"
         android:visibility="gone" />
 
@@ -90,10 +114,26 @@
 
     </LinearLayout>
 
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/viewPager"
+    <!-- Upcoming bookings list -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvUpcoming"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:padding="12dp"
+        android:clipToPadding="false"
+        android:visibility="visible"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+    <!-- Past bookings list -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvPast"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="12dp"
+        android:clipToPadding="false"
+        android:visibility="gone"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
 </LinearLayout>

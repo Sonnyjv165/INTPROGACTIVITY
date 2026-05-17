@@ -5,7 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.intprogactivity.R
 import com.example.intprogactivity.databinding.FragmentAddOnsBinding
@@ -16,7 +16,7 @@ class AddOnsFragment : Fragment() {
 
     private var _binding: FragmentAddOnsBinding? = null
     private val binding get() = _binding!!
-    private val viewModel: BookingViewModel by viewModels()
+    private val viewModel: BookingViewModel by activityViewModels()
 
     // Passenger ID for add-on association (single adult for now)
     private val primaryPassengerId = "1"
@@ -45,8 +45,8 @@ class AddOnsFragment : Fragment() {
     private fun setupListeners() {
         binding.rgBaggage.setOnCheckedChangeListener { _, checkedId ->
             val (kg, price) = when (checkedId) {
-                R.id.rbBag20 -> Pair(20, 35.0)
-                R.id.rbBag30 -> Pair(30, 55.0)
+                R.id.rbBag20 -> Pair(20, 1800.0)
+                R.id.rbBag30 -> Pair(30, 2800.0)
                 else -> Pair(0, 0.0)
             }
             viewModel.setExtraBaggage(primaryPassengerId, kg, price)
@@ -55,9 +55,9 @@ class AddOnsFragment : Fragment() {
 
         binding.rgMeal.setOnCheckedChangeListener { _, checkedId ->
             val (type, price) = when (checkedId) {
-                R.id.rbMealRegular -> Pair("REGULAR", 12.0)
-                R.id.rbMealVeg -> Pair("VEGETARIAN", 12.0)
-                R.id.rbMealHalal -> Pair("HALAL", 12.0)
+                R.id.rbMealRegular -> Pair("REGULAR", 600.0)
+                R.id.rbMealVeg -> Pair("VEGETARIAN", 600.0)
+                R.id.rbMealHalal -> Pair("HALAL", 600.0)
                 else -> Pair("", 0.0)
             }
             viewModel.setMeal(primaryPassengerId, type, price)
@@ -74,9 +74,15 @@ class AddOnsFragment : Fragment() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        val seat = viewModel.selectedSeat()
+        binding.tvSeatSelected.text = if (seat != null) "Seat $seat selected" else "No seat selected (random)"
+    }
+
     private fun updateTotal() {
         val total = viewModel.addOns.value.totalCost()
-        binding.tvAddOnsTotal.text = "$${String.format("%.2f", total)}"
+        binding.tvAddOnsTotal.text = "₱${String.format("%,.0f", total)}"
     }
 
     override fun onDestroyView() {

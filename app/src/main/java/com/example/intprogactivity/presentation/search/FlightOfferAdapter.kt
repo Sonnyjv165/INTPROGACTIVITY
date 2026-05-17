@@ -57,8 +57,8 @@ class FlightOfferAdapter(
             }
 
             val price = offer.totalPriceDouble()
-            binding.tvPrice.text = "$${String.format("%.0f", price)}"
-            binding.tvPriceLabel.text = "per person · ${offer.price.currency}"
+            binding.tvPrice.text = "₱${String.format("%,.0f", price)}"
+            binding.tvPriceLabel.text = "per person · PHP"
 
             binding.btnSelectFlight.setOnClickListener { onFlightClick(offer) }
             binding.root.setOnClickListener { onFlightClick(offer) }

@@ -21,10 +21,10 @@
 
             <ImageView
                 android:id="@+id/ivAvatar"
-                android:layout_width="72dp"
-                android:layout_height="72dp"
-                android:src="@android:drawable/ic_menu_myplaces"
-                app:tint="@color/brand_on_primary" />
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:src="@drawable/profile"
+                android:scaleType="centerCrop" />
 
             <TextView
                 android:id="@+id/tvDisplayName"
@@ -57,6 +57,18 @@
                 android:background="@drawable/bg_pill_primary"
                 android:paddingHorizontal="12dp"
                 android:paddingVertical="5dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnEditProfile"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginTop="12dp"
+                android:text="Edit Profile"
+                android:textColor="@color/brand_on_primary"
+                android:textSize="13sp"
+                app:strokeColor="@color/brand_on_primary"
+                app:cornerRadius="18dp" />
 
         </LinearLayout>
 
@@ -191,6 +203,41 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
+
+                <!-- Edit Profile -->
+                <LinearLayout
+                    android:id="@+id/itemEditProfile"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="20dp"
+                    android:background="?attr/selectableItemBackground">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="✏️"
+                        android:textSize="20sp" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="16dp"
+                        android:text="Edit Profile"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp" />
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@android:drawable/ic_media_next"
+                        app:tint="@color/text_secondary" />
+
+                </LinearLayout>
+
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginHorizontal="20dp" />
 
                 <!-- Price Alerts -->
                 <LinearLayout

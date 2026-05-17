@@ -65,5 +65,26 @@ class BookingRepositoryImpl @Inject constructor(
         put("destinationIata", destinationIata)
         put("airlineName", airlineName)
         put("addOnsInsurance", addOns.travelInsurance)
+        put("passengers", passengers.map { p ->
+            mapOf(
+                "id" to p.id,
+                "firstName" to p.firstName,
+                "lastName" to p.lastName,
+                "dateOfBirth" to p.dateOfBirth,
+                "gender" to p.gender,
+                "email" to p.email,
+                "phone" to p.phone,
+                "nationality" to p.nationality,
+                "passportNumber" to p.passportNumber,
+                "type" to p.type.name
+            )
+        })
+        put("seatSelections", addOns.seatSelections.map { s ->
+            mapOf(
+                "passengerId" to s.passengerId,
+                "segmentId" to s.segmentId,
+                "seatNumber" to s.seatNumber
+            )
+        })
     }
 }

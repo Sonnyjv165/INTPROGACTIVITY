@@ -184,8 +184,9 @@
                 android:layout_gravity="center"
                 android:layout_marginTop="20dp"
                 android:text="@string/link_no_account"
-                android:textColor="@color/text_secondary"
-                android:textSize="14sp" />
+                android:textColor="@color/brand_primary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
 
             <!-- Guest -->
             <TextView

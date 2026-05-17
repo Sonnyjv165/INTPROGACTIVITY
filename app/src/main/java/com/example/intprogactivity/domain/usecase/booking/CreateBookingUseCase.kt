@@ -21,7 +21,8 @@ class CreateBookingUseCase @Inject constructor(
         returnFlight: FlightOffer? = null,
         passengers: List<Passenger>,
         addOns: AddOns,
-        user: User
+        user: User,
+        overrideTotalPrice: Double? = null
     ): Result<Booking> {
         // Business rule: Guests cannot book
         if (user.membershipTier == MembershipTier.GUEST)
@@ -36,7 +37,7 @@ class CreateBookingUseCase @Inject constructor(
             return Result.Error(Exception("Ryanair bookings are not supported under our service guarantee."))
 
         val basePrice = flightOffer.totalPriceDouble()
-        val totalPrice = basePrice + addOns.totalCost()
+        val totalPrice = overrideTotalPrice ?: (basePrice + addOns.totalCost())
         val coinsEarned = (totalPrice * Constants.BASE_COIN_EARN_RATE * user.membershipTier.coinMultiplier()).toInt()
 
         val firstSeg = flightOffer.itineraries.firstOrNull()?.segments?.firstOrNull()

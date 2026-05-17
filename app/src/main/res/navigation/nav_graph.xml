@@ -81,7 +81,18 @@
             app:destination="@id/searchResultsFragment" />
     </fragment>
 
-    <!-- Search -->
+    <!-- Search tab landing -->
+    <fragment
+        android:id="@+id/searchFragment"
+        android:name="com.example.intprogactivity.presentation.search.SearchFragment"
+        android:label="Search"
+        tools:layout="@layout/fragment_search">
+        <action
+            android:id="@+id/action_search_to_results"
+            app:destination="@id/searchResultsFragment" />
+    </fragment>
+
+    <!-- Search Results -->
     <fragment
         android:id="@+id/searchResultsFragment"
         android:name="com.example.intprogactivity.presentation.search.SearchResultsFragment"

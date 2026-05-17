@@ -116,6 +116,152 @@ object LocalFlightData {
             RouteTemplate("PR", "101", 0, 30, 840, 55000.0, "77W"),
             RouteTemplate("UA", "891", 23, 30, 840, 62000.0, "789"),
         ),
+        // Philippine domestic — additional cities
+        "MNL-CRM" to listOf(
+            RouteTemplate("5J", "631", 6, 0, 95, 1999.0),
+            RouteTemplate("PR", "461", 10, 30, 95, 3500.0, "321"),
+            RouteTemplate("5J", "633", 15, 0, 95, 2299.0),
+        ),
+        "MNL-GES" to listOf(
+            RouteTemplate("5J", "701", 5, 50, 120, 2299.0),
+            RouteTemplate("PR", "471", 9, 0, 120, 4000.0, "321"),
+            RouteTemplate("5J", "703", 14, 0, 120, 2599.0),
+        ),
+        "MNL-ZAM" to listOf(
+            RouteTemplate("5J", "711", 6, 30, 110, 2099.0),
+            RouteTemplate("PR", "481", 11, 0, 110, 3800.0, "321"),
+        ),
+        "MNL-LGP" to listOf(
+            RouteTemplate("5J", "721", 7, 0, 60, 1699.0),
+            RouteTemplate("Z2", "351", 12, 30, 60, 1499.0),
+            RouteTemplate("5J", "723", 17, 0, 60, 1899.0),
+        ),
+        "MNL-TAC" to listOf(
+            RouteTemplate("5J", "731", 6, 45, 90, 1999.0),
+            RouteTemplate("PR", "491", 10, 0, 90, 3500.0, "321"),
+            RouteTemplate("5J", "733", 15, 30, 90, 2299.0),
+        ),
+        "MNL-TAG" to listOf(
+            RouteTemplate("5J", "741", 7, 30, 75, 2299.0),
+            RouteTemplate("PR", "501", 12, 0, 75, 3800.0, "321"),
+        ),
+        "MNL-CYP" to listOf(
+            RouteTemplate("5J", "751", 8, 0, 80, 1999.0),
+            RouteTemplate("Z2", "361", 14, 0, 80, 1799.0),
+        ),
+        // More Philippine domestic cross-routes
+        "CEB-ILO" to listOf(
+            RouteTemplate("5J", "871", 8, 30, 45, 1299.0),
+            RouteTemplate("Z2", "621", 14, 0, 45, 1099.0),
+        ),
+        "CEB-CRM" to listOf(
+            RouteTemplate("5J", "881", 7, 0, 50, 1399.0),
+            RouteTemplate("PR", "831", 13, 30, 50, 2800.0, "320"),
+        ),
+        // Southeast Asia
+        "MNL-TPE" to listOf(
+            RouteTemplate("CI", "711", 8, 30, 165, 8500.0, "333"),
+            RouteTemplate("PR", "561", 11, 0, 170, 7000.0, "321"),
+            RouteTemplate("CI", "715", 15, 30, 165, 9000.0, "333"),
+            RouteTemplate("5J", "121", 19, 0, 170, 5500.0, "321"),
+        ),
+        "MNL-CGK" to listOf(
+            RouteTemplate("GA", "871", 9, 0, 270, 9500.0, "738"),
+            RouteTemplate("PR", "571", 12, 30, 275, 8000.0, "321"),
+            RouteTemplate("GA", "875", 17, 0, 270, 10000.0, "738"),
+        ),
+        "MNL-SGN" to listOf(
+            RouteTemplate("VN", "641", 7, 30, 180, 6500.0, "321"),
+            RouteTemplate("5J", "131", 10, 0, 180, 4500.0, "321"),
+            RouteTemplate("PR", "581", 14, 30, 185, 7500.0, "321"),
+            RouteTemplate("VN", "645", 19, 0, 180, 7000.0, "321"),
+        ),
+        "MNL-HAN" to listOf(
+            RouteTemplate("VN", "661", 8, 0, 195, 7000.0, "321"),
+            RouteTemplate("5J", "141", 12, 30, 195, 4999.0, "321"),
+            RouteTemplate("PR", "591", 16, 0, 200, 8000.0, "321"),
+        ),
+        "MNL-PVG" to listOf(
+            RouteTemplate("MU", "551", 9, 30, 195, 11000.0, "321"),
+            RouteTemplate("PR", "601", 13, 0, 195, 9000.0, "321"),
+            RouteTemplate("MU", "555", 18, 0, 195, 11500.0, "321"),
+        ),
+        "MNL-PEK" to listOf(
+            RouteTemplate("CA", "841", 10, 0, 210, 13000.0, "738"),
+            RouteTemplate("PR", "611", 14, 30, 215, 10500.0, "321"),
+        ),
+        // Cross-Asia routes
+        "SIN-BKK" to listOf(
+            RouteTemplate("SQ", "711", 7, 30, 150, 8000.0, "320"),
+            RouteTemplate("TG", "411", 12, 0, 150, 9500.0, "788"),
+            RouteTemplate("SQ", "715", 18, 0, 150, 8500.0, "320"),
+        ),
+        "SIN-KUL" to listOf(
+            RouteTemplate("SQ", "105", 6, 0, 55, 3500.0, "320"),
+            RouteTemplate("AK", "721", 9, 30, 55, 1800.0),
+            RouteTemplate("SQ", "109", 14, 0, 55, 3800.0, "320"),
+            RouteTemplate("AK", "725", 18, 30, 55, 2000.0),
+        ),
+        "HKG-ICN" to listOf(
+            RouteTemplate("CX", "411", 9, 0, 210, 12000.0, "350"),
+            RouteTemplate("KE", "601", 14, 30, 210, 14500.0, "73H"),
+        ),
+        "HKG-NRT" to listOf(
+            RouteTemplate("CX", "511", 10, 0, 230, 13000.0, "350"),
+            RouteTemplate("NH", "811", 15, 30, 230, 16000.0, "787"),
+        ),
+        "ICN-NRT" to listOf(
+            RouteTemplate("KE", "701", 8, 30, 130, 11000.0, "73H"),
+            RouteTemplate("NH", "901", 11, 0, 130, 13000.0, "787"),
+            RouteTemplate("KE", "705", 16, 0, 130, 11500.0, "73H"),
+        ),
+        // Europe
+        "MNL-LHR" to listOf(
+            RouteTemplate("BA", "11", 21, 0, 795, 65000.0, "789"),
+            RouteTemplate("EK", "351", 23, 30, 840, 58000.0, "77W"),
+        ),
+        "MNL-CDG" to listOf(
+            RouteTemplate("AF", "131", 22, 0, 825, 62000.0, "788"),
+        ),
+        "MNL-FRA" to listOf(
+            RouteTemplate("LH", "741", 21, 30, 810, 60000.0, "744"),
+        ),
+        // More Australia
+        "MNL-MEL" to listOf(
+            RouteTemplate("QF", "141", 21, 0, 540, 30000.0, "789"),
+            RouteTemplate("PR", "221", 23, 0, 540, 26000.0, "77W"),
+        ),
+        // More North America
+        "MNL-SFO" to listOf(
+            RouteTemplate("UA", "871", 22, 0, 870, 65000.0, "789"),
+            RouteTemplate("PR", "111", 0, 0, 870, 58000.0, "77W"),
+        ),
+        // Europe cross-routes
+        "DXB-LHR" to listOf(
+            RouteTemplate("EK", "3", 8, 0, 420, 28000.0, "388"),
+            RouteTemplate("BA", "107", 14, 30, 420, 32000.0, "789"),
+        ),
+        "DXB-CDG" to listOf(
+            RouteTemplate("EK", "71", 9, 30, 405, 26000.0, "388"),
+            RouteTemplate("AF", "611", 15, 0, 405, 28000.0, "788"),
+        ),
+        "DXB-FRA" to listOf(
+            RouteTemplate("EK", "47", 10, 0, 390, 25000.0, "388"),
+            RouteTemplate("LH", "601", 16, 0, 390, 27000.0, "744"),
+        ),
+        // Australia cross-routes
+        "SYD-MEL" to listOf(
+            RouteTemplate("QF", "401", 6, 30, 85, 8000.0, "738"),
+            RouteTemplate("VA", "301", 9, 0, 85, 7000.0, "738"),
+            RouteTemplate("QF", "407", 13, 30, 85, 8500.0, "738"),
+            RouteTemplate("VA", "305", 18, 0, 85, 7500.0, "738"),
+        ),
+        // North America cross-routes
+        "LAX-SFO" to listOf(
+            RouteTemplate("UA", "101", 7, 0, 80, 5000.0, "738"),
+            RouteTemplate("AA", "201", 11, 30, 80, 5500.0, "738"),
+            RouteTemplate("UA", "105", 16, 0, 80, 4800.0, "738"),
+        ),
     )
 
     fun searchFlights(params: FlightSearchParams): List<FlightOffer> {

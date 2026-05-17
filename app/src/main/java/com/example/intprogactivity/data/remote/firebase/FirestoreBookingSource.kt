@@ -1,7 +1,11 @@
 package com.example.intprogactivity.data.remote.firebase
 
+import com.example.intprogactivity.domain.model.AddOns
 import com.example.intprogactivity.domain.model.Booking
 import com.example.intprogactivity.domain.model.BookingStatus
+import com.example.intprogactivity.domain.model.Passenger
+import com.example.intprogactivity.domain.model.PassengerType
+import com.example.intprogactivity.domain.model.SeatSelection
 import com.example.intprogactivity.util.Constants
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
@@ -31,11 +35,10 @@ class FirestoreBookingSource @Inject constructor(
     suspend fun getUserBookings(userId: String): List<Map<String, Any>> {
         val snapshot = bookingsCol()
             .whereEqualTo("userId", userId)
-            .orderBy("createdAt", Query.Direction.DESCENDING)
             .get().await()
         return snapshot.documents.mapNotNull { doc ->
             doc.data?.plus("bookingId" to doc.id)
-        }
+        }.sortedByDescending { it["createdAt"] as? Long ?: 0L }
     }
 
     suspend fun updateBookingStatus(bookingId: String, status: BookingStatus) {
@@ -45,12 +48,11 @@ class FirestoreBookingSource @Inject constructor(
     fun getUserBookingsFlow(userId: String): Flow<List<Booking>> = callbackFlow {
         val listener = bookingsCol()
             .whereEqualTo("userId", userId)
-            .orderBy("createdAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
-                if (error != null) { trySend(emptyList()); return@addSnapshotListener }
+                if (error != null) return@addSnapshotListener  // keep last good data on error
                 val bookings = snapshot?.documents?.mapNotNull { doc ->
                     doc.data?.plus("bookingId" to doc.id)?.toBooking()
-                } ?: emptyList()
+                }?.sortedByDescending { it.createdAt } ?: emptyList()
                 trySend(bookings)
             }
         awaitClose { listener.remove() }
@@ -58,6 +60,34 @@ class FirestoreBookingSource @Inject constructor(
 }
 
 fun Map<String, Any>.toBooking(): Booking? = try {
+    val passengers = (this["passengers"] as? List<*>)?.mapNotNull { item ->
+        (item as? Map<*, *>)?.let { m ->
+            Passenger(
+                id = m["id"] as? String ?: "",
+                firstName = m["firstName"] as? String ?: "",
+                lastName = m["lastName"] as? String ?: "",
+                dateOfBirth = m["dateOfBirth"] as? String ?: "",
+                gender = m["gender"] as? String ?: "",
+                email = m["email"] as? String ?: "",
+                phone = m["phone"] as? String ?: "",
+                nationality = m["nationality"] as? String ?: "",
+                passportNumber = m["passportNumber"] as? String ?: "",
+                type = try { PassengerType.valueOf(m["type"] as? String ?: "ADULT") } catch (_: Exception) { PassengerType.ADULT }
+            )
+        }
+    } ?: emptyList()
+
+    val seatSelections = (this["seatSelections"] as? List<*>)?.mapNotNull { item ->
+        (item as? Map<*, *>)?.let { m ->
+            SeatSelection(
+                passengerId = m["passengerId"] as? String ?: "",
+                segmentId = m["segmentId"] as? String ?: "SEG1",
+                seatNumber = m["seatNumber"] as? String ?: "",
+                price = 0.0
+            )
+        }
+    } ?: emptyList()
+
     Booking(
         bookingId = this["bookingId"] as? String ?: "",
         userId = this["userId"] as? String ?: "",
@@ -65,11 +95,16 @@ fun Map<String, Any>.toBooking(): Booking? = try {
         status = BookingStatus.valueOf(this["status"] as? String ?: "CONFIRMED"),
         outboundFlightJson = this["outboundFlightJson"] as? String ?: "",
         returnFlightJson = this["returnFlightJson"] as? String,
-        totalPrice = this["totalPrice"] as? Double ?: 0.0,
+        passengers = passengers,
+        totalPrice = (this["totalPrice"] as? Number)?.toDouble() ?: 0.0,
         currency = this["currency"] as? String ?: "PHP",
-        tripCoinsEarned = (this["tripCoinsEarned"] as? Long)?.toInt() ?: 0,
-        createdAt = this["createdAt"] as? Long ?: 0L,
-        travelDate = this["travelDate"] as? Long ?: 0L,
+        addOns = AddOns(
+            travelInsurance = this["addOnsInsurance"] as? Boolean ?: false,
+            seatSelections = seatSelections
+        ),
+        tripCoinsEarned = (this["tripCoinsEarned"] as? Number)?.toInt() ?: 0,
+        createdAt = (this["createdAt"] as? Number)?.toLong() ?: 0L,
+        travelDate = (this["travelDate"] as? Number)?.toLong() ?: 0L,
         originIata = this["originIata"] as? String ?: "",
         destinationIata = this["destinationIata"] as? String ?: "",
         airlineName = this["airlineName"] as? String ?: ""

@@ -56,8 +56,9 @@ class BookingCardAdapter(
                 dateFormat.format(booking.travelDate)
             }.getOrDefault("")
 
-            binding.tvPassengerCount.text = "${booking.passengers.size} Passenger${if (booking.passengers.size != 1) "s" else ""}"
-            binding.tvPrice.text = "$${String.format("%.2f", booking.totalPrice)}"
+            val paxCount = booking.passengers.size.takeIf { it > 0 } ?: 1
+            binding.tvPassengerCount.text = "$paxCount Passenger${if (paxCount != 1) "s" else ""}"
+            binding.tvPrice.text = "₱${String.format("%,.0f", booking.totalPrice)}"
 
             binding.root.setOnClickListener { onBookingClick(booking) }
         }

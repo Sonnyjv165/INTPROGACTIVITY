@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -30,25 +29,23 @@ class TripsViewModel @Inject constructor(
 
     val bookingsState: StateFlow<UiState<List<Booking>>> = authRepository.currentUser
         .flatMapLatest { user ->
-            if (user == null) flowOf(emptyList())
-            else getUserBookingsUseCase(user.uid)
+            if (user == null) flowOf(UiState.Loading)
+            else getUserBookingsUseCase(user.uid).map { UiState.Success(it) as UiState<List<Booking>> }
         }
-        .map { UiState.Success(it) as UiState<List<Booking>> }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UiState.Loading)
 
     val upcomingBookings: StateFlow<List<Booking>> = bookingsState
         .map { state ->
-            if (state is UiState.Success) state.data.filter { it.status == BookingStatus.CONFIRMED }
-            else emptyList()
+            (state as? UiState.Success)?.data?.filter { it.status == BookingStatus.CONFIRMED }
+                ?: emptyList()
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     val pastBookings: StateFlow<List<Booking>> = bookingsState
         .map { state ->
-            if (state is UiState.Success) state.data.filter {
+            (state as? UiState.Success)?.data?.filter {
                 it.status == BookingStatus.COMPLETED || it.status == BookingStatus.CANCELLED
-            }
-            else emptyList()
+            } ?: emptyList()
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 

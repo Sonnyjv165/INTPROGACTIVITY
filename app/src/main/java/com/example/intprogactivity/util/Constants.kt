@@ -13,7 +13,7 @@ object Constants {
     const val MIN_CANCEL_HOURS_BEFORE = 24L
     const val RYANAIR_IATA_CODE = "FR"
 
-    const val BASE_COIN_EARN_RATE = 10
+    const val BASE_COIN_EARN_RATE = 0.05 // 1 coin per ₱20 spent
 
     const val DATASTORE_PREFS_NAME = "trip_flights_prefs"
     const val KEY_LAST_SEARCH_ORIGIN = "last_search_origin"

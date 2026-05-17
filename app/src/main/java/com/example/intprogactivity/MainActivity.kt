@@ -31,6 +31,7 @@ class MainActivity : AppCompatActivity() {
             R.id.loginFragment,
             R.id.registerFragment,
             R.id.forgotPasswordFragment,
+            R.id.searchResultsFragment,
             R.id.flightDetailFragment,
             R.id.passengerDetailsFragment,
             R.id.addOnsFragment,

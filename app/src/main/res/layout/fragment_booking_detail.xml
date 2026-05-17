@@ -220,14 +220,11 @@
                         android:textStyle="bold"
                         android:layout_marginBottom="8dp" />
 
-                    <TextView
-                        android:id="@+id/tvPassengerName"
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:id="@+id/llPassengerList"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="DELA CRUZ JUAN"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="14sp"
-                        android:fontFamily="monospace" />
+                        android:orientation="vertical" />
 
                 </LinearLayout>
 
@@ -262,7 +259,7 @@
                         android:id="@+id/tvTotalPrice"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="$299.00"
+                        android:text="₱0"
                         android:textColor="@color/cta_orange"
                         android:textSize="20sp"
                         android:textStyle="bold" />

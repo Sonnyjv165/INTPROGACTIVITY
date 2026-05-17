@@ -13,11 +13,23 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- Gradient destination image placeholder -->
+        <!-- Destination image -->
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="100dp"
-            android:background="@color/brand_primary">
+            android:layout_height="110dp">
+
+            <ImageView
+                android:id="@+id/ivDealImage"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@color/brand_primary" />
+
+            <!-- Dark overlay for text legibility -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#55000000" />
 
             <TextView
                 android:id="@+id/tvDestinationEmoji"
@@ -25,7 +37,8 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:text="✈"
-                android:textSize="32sp" />
+                android:textSize="28sp"
+                android:visibility="gone" />
 
             <!-- Discount badge -->
             <TextView
@@ -42,6 +55,20 @@
                 android:paddingHorizontal="6dp"
                 android:paddingVertical="2dp" />
 
+            <!-- Destination name overlay -->
+            <TextView
+                android:id="@+id/tvDealDestination"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:padding="8dp"
+                android:text="Tokyo"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
         </FrameLayout>
 
         <LinearLayout
@@ -51,31 +78,19 @@
             android:padding="10dp">
 
             <TextView
-                android:id="@+id/tvDealDestination"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Tokyo"
-                android:textColor="@color/text_primary"
-                android:textSize="15sp"
-                android:textStyle="bold"
-                android:maxLines="1"
-                android:ellipsize="end" />
-
-            <TextView
                 android:id="@+id/tvDealOrigin"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="From Manila"
                 android:textColor="@color/text_secondary"
-                android:textSize="12sp"
-                android:layout_marginTop="2dp" />
+                android:textSize="12sp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:layout_marginTop="8dp">
+                android:layout_marginTop="6dp">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -88,7 +103,7 @@
                     android:id="@+id/tvDealPrice"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="$299"
+                    android:text="₱2,999"
                     android:textColor="@color/cta_orange"
                     android:textSize="16sp"
                     android:textStyle="bold" />

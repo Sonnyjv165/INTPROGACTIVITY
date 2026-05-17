@@ -2,6 +2,7 @@ package com.example.intprogactivity.presentation.home
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.annotation.DrawableRes
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -14,7 +15,8 @@ data class DealItem(
     val discount: String,
     val emoji: String,
     val originCode: String,
-    val destinationCode: String
+    val destinationCode: String,
+    @DrawableRes val imageResId: Int = 0
 )
 
 class DealsAdapter(
@@ -38,7 +40,16 @@ class DealsAdapter(
             binding.tvDealOrigin.text = "From ${deal.originCity}"
             binding.tvDealPrice.text = deal.price
             binding.tvDiscount.text = deal.discount
-            binding.tvDestinationEmoji.text = deal.emoji
+
+            if (deal.imageResId != 0) {
+                binding.ivDealImage.setImageResource(deal.imageResId)
+                binding.tvDestinationEmoji.visibility = android.view.View.GONE
+            } else {
+                binding.ivDealImage.setImageResource(android.R.color.transparent)
+                binding.tvDestinationEmoji.text = deal.emoji
+                binding.tvDestinationEmoji.visibility = android.view.View.VISIBLE
+            }
+
             binding.root.setOnClickListener { onDealClick(deal) }
         }
     }

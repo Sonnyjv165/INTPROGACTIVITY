@@ -112,7 +112,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
-                            android:text="20kg extra · +$35"
+                            android:text="20kg extra · +₱1,800"
                             android:textSize="14sp" />
 
                         <RadioButton
@@ -120,7 +120,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
-                            android:text="30kg extra · +$55"
+                            android:text="30kg extra · +₱2,800"
                             android:textSize="14sp" />
 
                     </RadioGroup>
@@ -171,7 +171,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
-                            android:text="Regular meal · +$12"
+                            android:text="Regular meal · +₱600"
                             android:textSize="14sp" />
 
                         <RadioButton
@@ -179,7 +179,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
-                            android:text="Vegetarian meal · +$12"
+                            android:text="Vegetarian meal · +₱600"
                             android:textSize="14sp" />
 
                         <RadioButton
@@ -187,7 +187,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
-                            android:text="Halal meal · +$12"
+                            android:text="Halal meal · +₱600"
                             android:textSize="14sp" />
 
                     </RadioGroup>
@@ -230,7 +230,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="Coverage for delays, cancellations &amp; medical · +$12"
+                            android:text="Coverage for delays, cancellations &amp; medical · +₱1,200"
                             android:textColor="@color/text_secondary"
                             android:textSize="13sp" />
 

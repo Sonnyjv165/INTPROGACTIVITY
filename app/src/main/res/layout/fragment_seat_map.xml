@@ -83,6 +83,17 @@
 
     </LinearLayout>
 
+    <TextView
+        android:id="@+id/tvPassengerLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="16dp"
+        android:paddingBottom="8dp"
+        android:text="Select seat for Passenger 1"
+        android:textColor="@color/brand_primary"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvSeats"
         android:layout_width="match_parent"

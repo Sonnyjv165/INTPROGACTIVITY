@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -87,15 +88,29 @@ class BookingDetailFragment : Fragment() {
             binding.tvDuration.text = formatDuration(offer.itineraries.firstOrNull()?.duration ?: "")
         }
 
+        val paxCount = booking.passengers.size.takeIf { it > 0 }
+            ?: 1 // fallback for legacy bookings with no passengers saved
         binding.tvTravelDate.text = runCatching {
             dateFormat.format(Date(booking.travelDate))
-        }.getOrDefault("") + " · ${booking.passengers.size} Passenger${if (booking.passengers.size != 1) "s" else ""}"
+        }.getOrDefault("") + " · $paxCount Passenger${if (paxCount != 1) "s" else ""}"
 
-        binding.tvPassengerName.text = booking.passengers.firstOrNull()?.let {
-            "${it.lastName.uppercase()} ${it.firstName.uppercase()}"
-        } ?: ""
+        binding.llPassengerList.removeAllViews()
+        if (booking.passengers.isEmpty()) {
+            // Legacy booking with no passenger data
+            addPassengerRow("Passenger details not available", null)
+        } else {
+            booking.passengers.forEach { p ->
+                val seat = booking.addOns.seatSelections
+                    .find { it.passengerId == booking.passengers.indexOf(p).toString() }
+                    ?.seatNumber
+                addPassengerRow(
+                    "${p.lastName.uppercase()} ${p.firstName.uppercase()} · ${p.type.name.lowercase().replaceFirstChar { it.uppercase() }}",
+                    seat
+                )
+            }
+        }
 
-        binding.tvTotalPrice.text = "$${String.format("%.2f", booking.totalPrice)}"
+        binding.tvTotalPrice.text = "₱${String.format("%,.0f", booking.totalPrice)}"
 
         binding.btnCancel.isVisible = booking.status == BookingStatus.CONFIRMED
         binding.btnCancel.setOnClickListener {
@@ -108,6 +123,17 @@ class BookingDetailFragment : Fragment() {
                 .setNegativeButton("Keep") { d, _ -> d.dismiss() }
                 .show()
         }
+    }
+
+    private fun addPassengerRow(name: String, seat: String?) {
+        val tv = TextView(requireContext()).apply {
+            text = if (seat != null) "$name · Seat $seat" else name
+            setTextColor(requireContext().getColor(android.R.color.darker_gray))
+            textSize = 14f
+            typeface = android.graphics.Typeface.MONOSPACE
+            setPadding(0, 4, 0, 4)
+        }
+        binding.llPassengerList.addView(tv)
     }
 
     private fun observeCancelState() {

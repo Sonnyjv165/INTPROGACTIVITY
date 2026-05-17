@@ -6,14 +6,18 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.intprogactivity.R
 import com.example.intprogactivity.databinding.FragmentSearchResultsBinding
+import com.example.intprogactivity.domain.model.FlightOffer
 import com.example.intprogactivity.domain.model.FlightSearchParams
+import com.example.intprogactivity.presentation.booking.BookingViewModel
 import com.example.intprogactivity.util.UiState
 import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
@@ -26,6 +30,7 @@ class SearchResultsFragment : Fragment() {
     private var _binding: FragmentSearchResultsBinding? = null
     private val binding get() = _binding!!
     private val viewModel: SearchViewModel by viewModels()
+    private val bookingViewModel: BookingViewModel by activityViewModels()
     private lateinit var adapter: FlightOfferAdapter
     private val gson = Gson()
     private lateinit var searchParams: FlightSearchParams
@@ -66,11 +71,21 @@ class SearchResultsFragment : Fragment() {
 
     private fun setupAdapter() {
         adapter = FlightOfferAdapter { offer ->
-            val json = gson.toJson(offer)
-            val bundle = Bundle().apply { putString("flightOfferJson", json) }
-            findNavController().navigate(R.id.action_results_to_detail, bundle)
+            navigateToDetail(offer)
         }
+        binding.rvFlights.layoutManager = LinearLayoutManager(requireContext())
         binding.rvFlights.adapter = adapter
+    }
+
+    private fun navigateToDetail(offer: FlightOffer) {
+        val offerJson = gson.toJson(offer)
+        val bundle = Bundle().apply {
+            putString("flightOfferJson", offerJson)
+            putBoolean("isRoundTrip", searchParams.isRoundTrip())
+            putString("returnDate", searchParams.returnDate ?: "")
+            putString("searchParamsJson", gson.toJson(searchParams))
+        }
+        findNavController().navigate(R.id.action_results_to_detail, bundle)
     }
 
     private fun setupFilters() {
@@ -102,9 +117,10 @@ class SearchResultsFragment : Fragment() {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.searchState.collect { state ->
                     binding.layoutLoading.isVisible = state is UiState.Loading
-                    binding.layoutEmpty.isVisible = state is UiState.Success && (state.data as List<*>).isEmpty()
-                    binding.rvFlights.isVisible = state is UiState.Success && (state.data as List<*>).isNotEmpty()
-                    binding.tvResultCount.isVisible = state is UiState.Success
+                    val successList = (state as? UiState.Success)?.data
+                    binding.layoutEmpty.isVisible = successList != null && successList.isEmpty()
+                    binding.rvFlights.isVisible = successList != null && successList.isNotEmpty()
+                    binding.tvResultCount.isVisible = successList != null
 
                     when (state) {
                         is UiState.Success -> {
@@ -113,6 +129,8 @@ class SearchResultsFragment : Fragment() {
                             binding.tvResultCount.text = "${offers.size} flight${if (offers.size != 1) "s" else ""} found"
                         }
                         is UiState.Error -> {
+                            binding.layoutLoading.isVisible = false
+                            binding.layoutEmpty.isVisible = true
                             Snackbar.make(binding.root, state.message, Snackbar.LENGTH_LONG).show()
                         }
                         else -> Unit

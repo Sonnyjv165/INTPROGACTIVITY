@@ -281,7 +281,8 @@
                             android:layout_height="wrap_content"
                             android:text="Add return"
                             android:textColor="@color/text_secondary"
-                            android:textSize="14sp" />
+                            android:textSize="14sp"
+                            android:textStyle="normal" />
 
                     </LinearLayout>
 

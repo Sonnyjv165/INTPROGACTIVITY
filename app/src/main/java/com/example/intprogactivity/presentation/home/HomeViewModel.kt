@@ -96,6 +96,18 @@ class HomeViewModel @Inject constructor(
     fun setOrigin(airport: Airport) { _origin.value = airport }
     fun setDestination(airport: Airport) { _destination.value = airport }
 
+    fun setOriginByCode(iataCode: String) {
+        val airport = com.example.intprogactivity.data.local.LocalAirportData.airports
+            .find { it.iataCode == iataCode }
+        if (airport != null) _origin.value = airport
+    }
+
+    fun setDestinationByCode(iataCode: String) {
+        val airport = com.example.intprogactivity.data.local.LocalAirportData.airports
+            .find { it.iataCode == iataCode }
+        if (airport != null) _destination.value = airport
+    }
+
     fun swapOriginDestination() {
         val temp = _origin.value
         _origin.value = _destination.value
