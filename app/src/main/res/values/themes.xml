@@ -1,9 +1,93 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.INTPROGACTIVITY" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+
+    <style name="Base.Theme.TripFlights" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">@color/brand_primary</item>
+        <item name="colorPrimaryVariant">@color/brand_primary_dark</item>
+        <item name="colorOnPrimary">@color/brand_on_primary</item>
+        <item name="colorSecondary">@color/cta_orange</item>
+        <item name="colorOnSecondary">@color/brand_on_primary</item>
+        <item name="android:colorBackground">@color/background</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="colorOnSurfaceVariant">@color/text_secondary</item>
+        <item name="colorError">@color/error_color</item>
+        <item name="android:statusBarColor" tools:targetApi="21">@color/brand_primary</item>
+        <item name="android:navigationBarColor" tools:targetApi="21">@color/surface</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="23">false</item>
     </style>
 
-    <style name="Theme.INTPROGACTIVITY" parent="Base.Theme.INTPROGACTIVITY" />
+    <style name="Theme.TripFlights" parent="Base.Theme.TripFlights" />
+
+    <!-- Keep old theme name so old Activity files compile -->
+    <style name="Theme.INTPROGACTIVITY" parent="Theme.TripFlights" />
+
+    <!-- Card -->
+    <style name="Widget.TripFlights.Card" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardElevation">2dp</item>
+        <item name="cardCornerRadius">12dp</item>
+        <item name="cardBackgroundColor">@color/surface</item>
+    </style>
+
+    <!-- Primary button -->
+    <style name="Widget.TripFlights.Button.Primary" parent="Widget.Material3.Button">
+        <item name="backgroundTint">@color/brand_primary</item>
+        <item name="android:textColor">@color/brand_on_primary</item>
+        <item name="cornerRadius">8dp</item>
+        <item name="android:paddingTop">14dp</item>
+        <item name="android:paddingBottom">14dp</item>
+    </style>
+
+    <!-- CTA Orange button -->
+    <style name="Widget.TripFlights.Button.CTA" parent="Widget.Material3.Button">
+        <item name="backgroundTint">@color/cta_orange</item>
+        <item name="android:textColor">@color/brand_on_primary</item>
+        <item name="cornerRadius">8dp</item>
+        <item name="android:paddingTop">14dp</item>
+        <item name="android:paddingBottom">14dp</item>
+    </style>
+
+    <!-- Outlined button -->
+    <style name="Widget.TripFlights.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="strokeColor">@color/brand_primary</item>
+        <item name="android:textColor">@color/brand_primary</item>
+        <item name="cornerRadius">8dp</item>
+    </style>
+
+    <!-- Text input -->
+    <style name="Widget.TripFlights.TextInputLayout" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">@color/brand_primary</item>
+        <item name="hintTextColor">@color/text_secondary</item>
+        <item name="boxCornerRadiusTopStart">8dp</item>
+        <item name="boxCornerRadiusTopEnd">8dp</item>
+        <item name="boxCornerRadiusBottomStart">8dp</item>
+        <item name="boxCornerRadiusBottomEnd">8dp</item>
+    </style>
+
+    <!-- Bottom Navigation -->
+    <style name="Widget.TripFlights.BottomNavigationView" parent="Widget.Material3.BottomNavigationView">
+        <item name="android:background">@color/surface</item>
+        <item name="elevation">8dp</item>
+    </style>
+
+    <!-- Chip -->
+    <style name="Widget.TripFlights.Chip.Filter" parent="Widget.Material3.Chip.Filter">
+        <item name="chipStrokeColor">@color/border</item>
+        <item name="chipBackgroundColor">@color/surface</item>
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+
+    <!-- Tab Layout -->
+    <style name="Widget.TripFlights.TabLayout" parent="Widget.Material3.TabLayout">
+        <item name="tabSelectedTextColor">@color/brand_primary</item>
+        <item name="tabTextColor">@color/text_secondary</item>
+        <item name="tabIndicatorColor">@color/brand_primary</item>
+        <item name="android:background">@color/surface</item>
+    </style>
+
+    <!-- Splash -->
+    <style name="Theme.TripFlights.Splash" parent="Theme.TripFlights">
+        <item name="android:statusBarColor" tools:targetApi="21">@color/brand_primary</item>
+        <item name="android:windowBackground">@color/brand_primary</item>
+    </style>
+
 </resources>

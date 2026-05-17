@@ -1,75 +1,51 @@
 package com.example.intprogactivity
 
-import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ImageButton
-import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
+import androidx.navigation.NavController
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.ui.setupWithNavController
+import com.example.intprogactivity.databinding.ActivityMainBinding
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityMainBinding
+    private lateinit var navController: NavController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_login)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
+        val navHostFragment = supportFragmentManager
+            .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        navController = navHostFragment.navController
 
-        val loginBtn = findViewById<Button>(R.id.loginBtn)
-        val emailInput = findViewById<EditText>(R.id.emailInput)
-        val passwordInput = findViewById<EditText>(R.id.passwordInput)
-        val forgotPassword = findViewById<TextView>(R.id.forgotPassword)
-        val registerText = findViewById<TextView>(R.id.registerText)
-        val togglePassword = findViewById<ImageButton>(R.id.togglePassword)
+        binding.bottomNavigation.setupWithNavController(navController)
 
-        var isVisible = false
+        val hiddenFromNav = setOf(
+            R.id.splashFragment,
+            R.id.loginFragment,
+            R.id.registerFragment,
+            R.id.forgotPasswordFragment,
+            R.id.flightDetailFragment,
+            R.id.passengerDetailsFragment,
+            R.id.addOnsFragment,
+            R.id.seatMapFragment,
+            R.id.checkoutFragment,
+            R.id.confirmationFragment,
+            R.id.bookingDetailFragment,
+            R.id.priceAlertsFragment
+        )
 
-        togglePassword.setOnClickListener {
-            isVisible = !isVisible
-
-            if (isVisible) {
-                passwordInput.inputType =
-                    android.text.InputType.TYPE_CLASS_TEXT or
-                            android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
-            } else {
-                passwordInput.inputType =
-                    android.text.InputType.TYPE_CLASS_TEXT or
-                            android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
-            }
-
-            passwordInput.setSelection(passwordInput.text.length)
-        }
-
-        val registeredEmail = intent.getStringExtra("REGISTERED_EMAIL")
-        if (registeredEmail != null) {
-            emailInput.setText(registeredEmail)
-        }
-
-        loginBtn.setOnClickListener {
-            val email = emailInput.text.toString()
-            val password = passwordInput.text.toString()
-
-            val sharedPref = getSharedPreferences("USER_DATA", MODE_PRIVATE)
-            val savedEmail = sharedPref.getString("EMAIL", null)
-            val savedPass = sharedPref.getString("PASSWORD", null)
-
-            if (email == savedEmail && password == savedPass) {
-                val intent = Intent(this, DashboardActivity::class.java)
-                intent.putExtra("USER_EMAIL", email)
-                startActivity(intent)
-            } else {
-                Toast.makeText(this, "Invalid Credentials", Toast.LENGTH_SHORT).show()
-            }
-        }
-
-        // NAVIGATION
-        registerText.setOnClickListener {
-            startActivity(Intent(this, RegisterActivity::class.java))
-        }
-
-        forgotPassword.setOnClickListener {
-            startActivity(Intent(this, ForgotPasswordActivity::class.java))
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            binding.bottomNavigation.isVisible = destination.id !in hiddenFromNav
         }
     }
+
+    override fun onSupportNavigateUp(): Boolean =
+        navController.navigateUp() || super.onSupportNavigateUp()
 }

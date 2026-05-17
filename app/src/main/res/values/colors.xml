@@ -1,5 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Brand Primary -->
+    <color name="brand_primary">#006CE4</color>
+    <color name="brand_primary_dark">#0052B0</color>
+    <color name="brand_primary_container">#D6E8FF</color>
+    <color name="brand_on_primary">#FFFFFF</color>
+
+    <!-- CTA Orange -->
+    <color name="cta_orange">#FF6B00</color>
+    <color name="cta_orange_light">#FFF0E6</color>
+
+    <!-- Backgrounds -->
+    <color name="background">#F0F2F5</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="surface_variant">#F5F7FA</color>
+
+    <!-- Text -->
+    <color name="text_primary">#1A1A1A</color>
+    <color name="text_secondary">#6B7280</color>
+    <color name="text_hint">#9CA3AF</color>
+    <color name="text_on_dark">#FFFFFF</color>
+
+    <!-- Semantic -->
+    <color name="success">#10B981</color>
+    <color name="success_container">#D1FAE5</color>
+    <color name="warning">#F59E0B</color>
+    <color name="warning_container">#FEF3C7</color>
+    <color name="error_color">#EF4444</color>
+    <color name="error_container">#FEE2E2</color>
+
+    <!-- Divider / Border -->
+    <color name="divider">#E5E7EB</color>
+    <color name="border">#D1D5DB</color>
+
+    <!-- Membership Tiers -->
+    <color name="tier_silver">#9CA3AF</color>
+    <color name="tier_silver_bg">#F3F4F6</color>
+    <color name="tier_gold">#F59E0B</color>
+    <color name="tier_gold_bg">#FEF3C7</color>
+    <color name="tier_platinum">#60A5FA</color>
+    <color name="tier_platinum_bg">#EFF6FF</color>
+    <color name="tier_diamond">#A78BFA</color>
+    <color name="tier_diamond_bg">#EDE9FE</color>
+    <color name="tier_diamond_plus">#F472B6</color>
+    <color name="tier_diamond_plus_bg">#FCE7F3</color>
+    <color name="tier_black_diamond">#FFFFFF</color>
+    <color name="tier_black_diamond_bg">#1F2937</color>
+
+    <!-- Stops Badges -->
+    <color name="stops_direct">#10B981</color>
+    <color name="stops_one">#F59E0B</color>
+    <color name="stops_multi">#EF4444</color>
+
+    <!-- Seat Map -->
+    <color name="seat_available">#FFFFFF</color>
+    <color name="seat_selected">#006CE4</color>
+    <color name="seat_taken">#D1D5DB</color>
+
+    <!-- Scrim -->
+    <color name="scrim">#66000000</color>
+
+    <!-- Material compat -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="colorPrimary">#006CE4</color>
+    <color name="colorPrimaryVariant">#0052B0</color>
+    <color name="colorOnPrimary">#FFFFFF</color>
+    <color name="colorSecondary">#FF6B00</color>
+    <color name="colorOnSecondary">#FFFFFF</color>
+    <color name="colorSurface">#FFFFFF</color>
+    <color name="colorOnSurface">#1A1A1A</color>
+    <color name="colorBackground">#F0F2F5</color>
+    <color name="colorError">#EF4444</color>
 </resources>

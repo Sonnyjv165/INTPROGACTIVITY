@@ -1,3 +1,173 @@
 <resources>
-    <string name="app_name">INTPROG ACTIVITY</string>
+    <string name="app_name">TripFlights</string>
+
+    <!-- Auth -->
+    <string name="login_title">Welcome back</string>
+    <string name="login_subtitle">Sign in to continue your journey</string>
+    <string name="hint_email">Email address</string>
+    <string name="hint_password">Password</string>
+    <string name="hint_confirm_password">Confirm password</string>
+    <string name="hint_display_name">Full name</string>
+    <string name="hint_phone">Phone number</string>
+    <string name="btn_login">Sign In</string>
+    <string name="btn_google_signin">Continue with Google</string>
+    <string name="btn_register">Create Account</string>
+    <string name="btn_send_reset">Send Reset Link</string>
+    <string name="link_forgot_password">Forgot password?</string>
+    <string name="link_no_account">Don\'t have an account? Register</string>
+    <string name="link_have_account">Already have an account? Sign In</string>
+    <string name="register_title">Create account</string>
+    <string name="register_subtitle">Join millions of travelers</string>
+    <string name="forgot_password_title">Reset password</string>
+    <string name="forgot_password_subtitle">Enter your email and we\'ll send a reset link</string>
+    <string name="reset_email_sent">Reset link sent! Check your inbox.</string>
+    <string name="continue_as_guest">Continue as Guest</string>
+
+    <!-- Bottom Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_search">Search</string>
+    <string name="nav_trips">My Trips</string>
+    <string name="nav_rewards">Rewards</string>
+    <string name="nav_profile">Profile</string>
+
+    <!-- Home -->
+    <string name="greeting_morning">Good morning, %s!</string>
+    <string name="greeting_afternoon">Good afternoon, %s!</string>
+    <string name="greeting_evening">Good evening, %s!</string>
+    <string name="greeting_guest">Welcome, Traveler!</string>
+    <string name="hint_origin">Where from?</string>
+    <string name="hint_destination">Where to?</string>
+    <string name="label_departure">Departure</string>
+    <string name="label_return">Return</string>
+    <string name="label_passengers">Passengers</string>
+    <string name="label_cabin_class">Cabin class</string>
+    <string name="btn_search_flights">Search Flights</string>
+    <string name="label_one_way">One Way</string>
+    <string name="label_round_trip">Round Trip</string>
+    <string name="label_multi_city">Multi-City</string>
+    <string name="section_deals">Flash Deals</string>
+    <string name="section_explore">Explore Destinations</string>
+
+    <!-- Search Results -->
+    <string name="results_count">%d flights found</string>
+    <string name="sort_recommended">Recommended</string>
+    <string name="sort_cheapest">Cheapest</string>
+    <string name="sort_fastest">Fastest</string>
+    <string name="sort_earliest">Earliest</string>
+    <string name="filter_stops">Stops</string>
+    <string name="filter_price">Price</string>
+    <string name="filter_cabin">Cabin</string>
+    <string name="stops_direct">Direct</string>
+    <string name="stops_one">1 stop</string>
+    <string name="stops_two_plus">2+ stops</string>
+    <string name="no_flights_found">No flights found</string>
+    <string name="no_flights_hint">Try different dates or airports</string>
+    <string name="price_from">From</string>
+
+    <!-- Flight Detail -->
+    <string name="detail_title">Select Fare</string>
+    <string name="label_duration">Duration</string>
+    <string name="label_baggage_included">Included</string>
+    <string name="label_baggage_none">Not included</string>
+    <string name="cabin_economy">Economy</string>
+    <string name="cabin_premium_economy">Premium Economy</string>
+    <string name="cabin_business">Business</string>
+    <string name="cabin_first">First</string>
+
+    <!-- Booking -->
+    <string name="booking_passenger_title">Passenger Details</string>
+    <string name="booking_addons_title">Add-Ons</string>
+    <string name="booking_seat_title">Select Seats</string>
+    <string name="booking_checkout_title">Checkout</string>
+    <string name="booking_confirmation_title">Booking Confirmed!</string>
+    <string name="hint_first_name">First name</string>
+    <string name="hint_last_name">Last name</string>
+    <string name="hint_dob">Date of birth</string>
+    <string name="hint_gender">Gender</string>
+    <string name="hint_nationality">Nationality</string>
+    <string name="hint_passport">Passport number</string>
+    <string name="hint_passport_expiry">Passport expiry</string>
+    <string name="btn_continue">Continue</string>
+    <string name="btn_confirm_booking">Confirm Booking</string>
+    <string name="btn_view_trips">View My Trips</string>
+    <string name="btn_back_home">Back to Home</string>
+    <string name="btn_download_ticket">Download Ticket</string>
+    <string name="label_pnr">Booking Reference</string>
+    <string name="label_total_price">Total</string>
+    <string name="label_base_fare">Base Fare</string>
+    <string name="label_taxes_fees">Taxes &amp; Fees</string>
+    <string name="trip_coins_earn">%d Trip Coins</string>
+    <string name="addon_baggage_title">Extra Baggage</string>
+    <string name="addon_meals_title">Meal Preference</string>
+    <string name="addon_insurance_title">Travel Insurance</string>
+    <string name="addon_insurance_desc">Comprehensive coverage from ₱1,200/pax</string>
+    <string name="payment_credit_card">Credit Card</string>
+    <string name="payment_debit_card">Debit Card</string>
+    <string name="payment_paypal">PayPal</string>
+    <string name="payment_gcash">GCash</string>
+
+    <!-- My Trips -->
+    <string name="trips_title">My Trips</string>
+    <string name="trips_upcoming">Upcoming</string>
+    <string name="trips_completed">Completed</string>
+    <string name="trips_cancelled">Cancelled</string>
+    <string name="no_trips">No trips yet</string>
+    <string name="no_trips_hint">Your booked flights will appear here</string>
+    <string name="status_confirmed">Confirmed</string>
+    <string name="status_pending">Pending</string>
+    <string name="status_cancelled">Cancelled</string>
+    <string name="status_completed">Completed</string>
+    <string name="btn_cancel_booking">Cancel Booking</string>
+    <string name="cancel_confirm_title">Cancel Booking</string>
+    <string name="cancel_confirm_message">Are you sure you want to cancel? Refund processing may take 7–14 business days.</string>
+    <string name="btn_cancel">Cancel</string>
+    <string name="btn_confirm">Confirm</string>
+
+    <!-- Profile -->
+    <string name="profile_title">Profile</string>
+    <string name="btn_edit_profile">Edit Profile</string>
+    <string name="btn_save">Save</string>
+    <string name="btn_sign_out">Sign Out</string>
+    <string name="sign_out_confirm">Sign out of your account?</string>
+    <string name="section_price_alerts">Price Alerts</string>
+    <string name="no_alerts">No active price alerts</string>
+    <string name="btn_add_alert">+ Set Alert</string>
+    <string name="create_alert_title">Set Price Alert</string>
+    <string name="hint_target_price">Target price</string>
+
+    <!-- Rewards -->
+    <string name="rewards_title">Trip Coins</string>
+    <string name="coins_balance">%,d coins</string>
+    <string name="tier_silver">Silver Member</string>
+    <string name="tier_gold">Gold Member</string>
+    <string name="tier_platinum">Platinum Member</string>
+    <string name="tier_diamond">Diamond Member</string>
+    <string name="tier_diamond_plus">Diamond+ Member</string>
+    <string name="tier_black_diamond">Black Diamond</string>
+    <string name="tier_guest">Guest</string>
+    <string name="coin_history_title">Transaction History</string>
+    <string name="no_coin_history">No transactions yet</string>
+
+    <!-- Errors -->
+    <string name="error_guest_booking">Guests cannot book. Please create a free account first.</string>
+    <string name="error_booking_too_soon">Flights departing within 2 hours cannot be booked.</string>
+    <string name="error_ryanair_blocked">Ryanair bookings are not supported under our service guarantee.</string>
+    <string name="error_cancel_too_late">Bookings cannot be cancelled within 24 hours of departure.</string>
+    <string name="error_network">Network error. Please check your connection.</string>
+    <string name="error_generic">Something went wrong. Please try again.</string>
+    <string name="error_email_invalid">Please enter a valid email address.</string>
+    <string name="error_passwords_mismatch">Passwords do not match.</string>
+    <string name="error_field_required">This field is required.</string>
+
+    <!-- Airport Search -->
+    <string name="airport_search_hint">City or airport name</string>
+    <string name="airport_search_title">Search Airports</string>
+
+    <!-- Misc -->
+    <string name="loading">Loading…</string>
+    <string name="or_divider">or</string>
+    <string name="swap_airports">Swap</string>
+    <string name="add_passenger">+ Add Passenger</string>
+    <string name="label_trip_coins_earn">You\'ll earn</string>
+    <string name="default_web_client_id" translatable="false">363398672744-4iqufk26p8g0ihph1ijtu2qjnk55o6l6.apps.googleusercontent.com</string>
 </resources>
