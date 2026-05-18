@@ -1,6 +1,10 @@
 [versions]
 agp = "8.7.3"
 kotlin = "2.0.21"
+composeBom = "2024.12.01"
+activityCompose = "1.9.3"
+lifecycleCompose = "2.8.7"
+coil = "2.7.0"
 coreKtx = "1.13.1"
 junit = "4.13.2"
 junitVersion = "1.3.0"
@@ -25,6 +29,19 @@ viewpager2 = "1.1.0"
 desugar = "2.1.4"
 
 [libraries]
+# Compose
+compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+compose-ui = { group = "androidx.compose.ui", name = "ui" }
+compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
+compose-activity = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+compose-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycleCompose" }
+compose-lifecycle-runtime = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycleCompose" }
+compose-coil = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
+
 # Core
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
@@ -86,6 +103,7 @@ androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-co
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
 hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 google-services = { id = "com.google.gms.google-services", version = "4.4.2" }

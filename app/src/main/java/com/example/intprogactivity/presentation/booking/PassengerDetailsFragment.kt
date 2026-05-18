@@ -1,60 +1,83 @@
 package com.example.intprogactivity.presentation.booking
 
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.RadioGroup
-import android.widget.TextView
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.intprogactivity.R
-import com.example.intprogactivity.databinding.FragmentPassengerDetailsBinding
 import com.example.intprogactivity.domain.model.FlightOffer
 import com.example.intprogactivity.domain.model.PassengerType
-import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
+import com.example.intprogactivity.presentation.theme.AppBackground
+import com.example.intprogactivity.presentation.theme.BrandPrimary
+import com.example.intprogactivity.presentation.theme.CtaOrange
+import com.example.intprogactivity.presentation.theme.TripFlightsTheme
 import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class PassengerDetailsFragment : Fragment() {
 
-    private var _binding: FragmentPassengerDetailsBinding? = null
-    private val binding get() = _binding!!
     private val viewModel: BookingViewModel by activityViewModels()
     private val gson = Gson()
 
-    private data class PassengerFormViews(
-        val root: View,
-        val tvTitle: TextView,
-        val tilFirstName: TextInputLayout,
-        val etFirstName: TextInputEditText,
-        val tilLastName: TextInputLayout,
-        val etLastName: TextInputEditText,
-        val tilDob: TextInputLayout,
-        val etDob: TextInputEditText,
-        val tilPassport: TextInputLayout,
-        val etPassport: TextInputEditText,
-        val tilNationality: TextInputLayout,
-        val etNationality: TextInputEditText,
-        val rgGender: RadioGroup,
-        val type: PassengerType
-    )
-
-    private val passengerForms = mutableListOf<PassengerFormViews>()
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        _binding = FragmentPassengerDetailsBinding.inflate(inflater, container, false)
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         val offerJson = arguments?.getString("flightOfferJson") ?: ""
         val offer = gson.fromJson(offerJson, FlightOffer::class.java)
         val adults = arguments?.getInt("adults", 1) ?: 1
@@ -71,185 +94,287 @@ class PassengerDetailsFragment : Fragment() {
                 .onSuccess { viewModel.setReturnFlightOffer(it) }
         }
 
-        binding.btnBack.setOnClickListener { findNavController().navigateUp() }
-
-        buildPassengerForms(adults, children, infants)
-        setupContactPhoneFormatting()
-
-        binding.btnContinue.setOnClickListener {
-            if (validateAllForms()) {
-                collectAllPassengers()
-                val email = binding.etContactEmail.text?.toString()?.trim() ?: ""
-                val phone = binding.etContactPhone.text?.toString()?.trim() ?: ""
-                findNavController().navigate(R.id.action_passenger_to_addons, Bundle().apply {
-                    putString("contactEmail", email)
-                    putString("contactPhone", phone)
-                })
+        return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                TripFlightsTheme {
+                    PassengerDetailsScreen(
+                        adults = adults,
+                        children = children,
+                        infants = infants,
+                        onBack = { findNavController().navigateUp() },
+                        onContinue = { passengers, email, phone ->
+                            passengers.forEachIndexed { index, p ->
+                                viewModel.setPassenger(
+                                    index, p.firstName, p.lastName, p.dob, p.gender, p.passport, p.nationality
+                                )
+                            }
+                            viewModel.setContactInfo(email, phone)
+                            findNavController().navigate(
+                                R.id.action_passenger_to_addons,
+                                Bundle().apply {
+                                    putString("contactEmail", email)
+                                    putString("contactPhone", phone)
+                                }
+                            )
+                        }
+                    )
+                }
             }
         }
     }
+}
 
-    private fun buildPassengerForms(adults: Int, children: Int, infants: Int) {
-        passengerForms.clear()
-        binding.llPassengerForms.removeAllViews()
+data class PassengerFormState(
+    var firstName: String = "",
+    var lastName: String = "",
+    var dob: String = "",
+    var passport: String = "",
+    var nationality: String = "",
+    var gender: String = "MALE",
+    val type: PassengerType = PassengerType.ADULT
+)
 
-        val types = mutableListOf<PassengerType>()
-        repeat(adults) { types.add(PassengerType.ADULT) }
-        repeat(children) { types.add(PassengerType.CHILD) }
-        repeat(infants) { types.add(PassengerType.INFANT) }
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PassengerDetailsScreen(
+    adults: Int,
+    children: Int,
+    infants: Int,
+    onBack: () -> Unit,
+    onContinue: (List<PassengerFormState>, String, String) -> Unit
+) {
+    val passengerTypes = buildList {
+        repeat(adults) { add(PassengerType.ADULT) }
+        repeat(children) { add(PassengerType.CHILD) }
+        repeat(infants) { add(PassengerType.INFANT) }
+    }
 
-        types.forEachIndexed { index, type ->
-            val formView = LayoutInflater.from(requireContext())
-                .inflate(R.layout.item_passenger_form, binding.llPassengerForms, false)
+    val passengerForms = remember {
+        mutableStateListOf(*Array(passengerTypes.size) {
+            PassengerFormState(type = passengerTypes[it])
+        })
+    }
 
-            val form = PassengerFormViews(
-                root = formView,
-                tvTitle = formView.findViewById(R.id.tvPassengerTitle),
-                tilFirstName = formView.findViewById(R.id.tilFirstName),
-                etFirstName = formView.findViewById(R.id.etFirstName),
-                tilLastName = formView.findViewById(R.id.tilLastName),
-                etLastName = formView.findViewById(R.id.etLastName),
-                tilDob = formView.findViewById(R.id.tilDateOfBirth),
-                etDob = formView.findViewById(R.id.etDateOfBirth),
-                tilPassport = formView.findViewById(R.id.tilPassportNumber),
-                etPassport = formView.findViewById(R.id.etPassportNumber),
-                tilNationality = formView.findViewById(R.id.tilNationality),
-                etNationality = formView.findViewById(R.id.etNationality),
-                rgGender = formView.findViewById(R.id.rgGender),
-                type = type
+    var contactEmail by remember { mutableStateOf("") }
+    var contactPhone by remember { mutableStateOf("") }
+
+    var emailError by remember { mutableStateOf<String?>(null) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        topBar = {
+            TopAppBar(
+                title = { Text("Passenger Details") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = BrandPrimary,
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White
+                )
             )
-
-            val typeLabel = when (type) {
-                PassengerType.ADULT -> "Adult"
-                PassengerType.CHILD -> "Child"
-                PassengerType.INFANT -> "Infant"
-            }
-            form.tvTitle.text = "Passenger ${index + 1} ($typeLabel)"
-            setupValidationClearers(form)
-            passengerForms.add(form)
-            binding.llPassengerForms.addView(formView)
         }
-    }
-
-    private fun setupValidationClearers(form: PassengerFormViews) {
-        listOf(
-            form.etFirstName to form.tilFirstName,
-            form.etLastName to form.tilLastName,
-            form.etDob to form.tilDob,
-            form.etPassport to form.tilPassport,
-            form.etNationality to form.tilNationality
-        ).forEach { (editText, layout) ->
-            editText.addTextChangedListener(object : TextWatcher {
-                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                    layout.error = null
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(AppBackground)
+                .verticalScroll(rememberScrollState())
+                .padding(padding)
+                .padding(horizontal = 16.dp, vertical = 16.dp)
+        ) {
+            // Passenger forms
+            passengerForms.forEachIndexed { index, form ->
+                val typeLabel = when (form.type) {
+                    PassengerType.ADULT -> "Adult"
+                    PassengerType.CHILD -> "Child"
+                    PassengerType.INFANT -> "Infant"
                 }
-                override fun afterTextChanged(s: Editable?) {}
-            })
-        }
-    }
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            "Passenger ${index + 1} ($typeLabel)",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp,
+                            color = BrandPrimary
+                        )
+                        Spacer(Modifier.height(12.dp))
 
-    private fun setupContactPhoneFormatting() {
-        binding.tilContactPhone.hint = "+63 | 9xx xxx xxxx"
-        binding.etContactPhone.addTextChangedListener(object : TextWatcher {
-            private var isFormatting = false
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                if (isFormatting || s == null) return
-                isFormatting = true
-                var digits = s.toString().filter { it.isDigit() }
-                if (digits.startsWith("63")) digits = digits.substring(2)
-                if (digits.startsWith("0")) digits = digits.substring(1)
-                if (digits.length > 10) digits = digits.substring(0, 10)
-                val formatted = when {
-                    digits.length > 6 -> "${digits.substring(0, 3)} ${digits.substring(3, 6)} ${digits.substring(6)}"
-                    digits.length > 3 -> "${digits.substring(0, 3)} ${digits.substring(3)}"
-                    else -> digits
+                        Row(modifier = Modifier.fillMaxWidth()) {
+                            OutlinedTextField(
+                                value = form.firstName,
+                                onValueChange = { passengerForms[index] = form.copy(firstName = it) },
+                                label = { Text("First Name") },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(8.dp),
+                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            OutlinedTextField(
+                                value = form.lastName,
+                                onValueChange = { passengerForms[index] = form.copy(lastName = it) },
+                                label = { Text("Last Name") },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(8.dp),
+                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                            )
+                        }
+
+                        Spacer(Modifier.height(8.dp))
+
+                        OutlinedTextField(
+                            value = form.dob,
+                            onValueChange = { passengerForms[index] = form.copy(dob = it) },
+                            label = { Text("Date of Birth (YYYY-MM-DD)") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(8.dp),
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                        )
+
+                        Spacer(Modifier.height(8.dp))
+
+                        OutlinedTextField(
+                            value = form.passport,
+                            onValueChange = { passengerForms[index] = form.copy(passport = it) },
+                            label = { Text("Passport Number") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(8.dp),
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                        )
+
+                        Spacer(Modifier.height(8.dp))
+
+                        OutlinedTextField(
+                            value = form.nationality,
+                            onValueChange = { passengerForms[index] = form.copy(nationality = it) },
+                            label = { Text("Nationality (e.g. PH)") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(8.dp),
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done)
+                        )
+
+                        Spacer(Modifier.height(8.dp))
+
+                        Text("Gender", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Row {
+                            FilterChip(
+                                selected = form.gender == "MALE",
+                                onClick = { passengerForms[index] = form.copy(gender = "MALE") },
+                                label = { Text("Male") },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = BrandPrimary,
+                                    selectedLabelColor = Color.White
+                                )
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            FilterChip(
+                                selected = form.gender == "FEMALE",
+                                onClick = { passengerForms[index] = form.copy(gender = "FEMALE") },
+                                label = { Text("Female") },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = BrandPrimary,
+                                    selectedLabelColor = Color.White
+                                )
+                            )
+                        }
+                    }
                 }
-                s.replace(0, s.length, formatted)
-                isFormatting = false
+                Spacer(Modifier.height(12.dp))
             }
-        })
-        binding.etContactEmail.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                binding.tilContactEmail.error = null
-            }
-            override fun afterTextChanged(s: Editable?) {}
-        })
-        binding.etContactPhone.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                binding.tilContactPhone.error = null
-            }
-            override fun afterTextChanged(s: Editable?) {}
-        })
-    }
 
-    private fun validateAllForms(): Boolean {
-        var valid = true
+            // Contact info
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text("Contact Information", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = BrandPrimary)
+                    Spacer(Modifier.height(12.dp))
 
-        passengerForms.forEach { form ->
-            val firstName = form.etFirstName.text?.toString()?.trim() ?: ""
-            if (firstName.isBlank()) {
-                form.tilFirstName.error = "First name is required"
-                valid = false
+                    OutlinedTextField(
+                        value = contactEmail,
+                        onValueChange = {
+                            contactEmail = it
+                            emailError = null
+                        },
+                        label = { Text("Email Address") },
+                        singleLine = true,
+                        isError = emailError != null,
+                        supportingText = emailError?.let { { Text(it) } },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Email,
+                            imeAction = ImeAction.Next
+                        )
+                    )
+
+                    Spacer(Modifier.height(8.dp))
+
+                    OutlinedTextField(
+                        value = contactPhone,
+                        onValueChange = { contactPhone = it },
+                        label = { Text("Phone Number") },
+                        singleLine = true,
+                        placeholder = { Text("+63 9xx xxx xxxx") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Phone,
+                            imeAction = ImeAction.Done
+                        )
+                    )
+                }
             }
-            val lastName = form.etLastName.text?.toString()?.trim() ?: ""
-            if (lastName.isBlank()) {
-                form.tilLastName.error = "Last name is required"
-                valid = false
+
+            Spacer(Modifier.height(24.dp))
+
+            Button(
+                onClick = {
+                    var valid = true
+                    passengerForms.forEach { form ->
+                        if (form.firstName.isBlank() || form.lastName.isBlank() ||
+                            form.dob.isBlank() || form.passport.isBlank() || form.nationality.isBlank()
+                        ) {
+                            valid = false
+                        }
+                    }
+                    if (!android.util.Patterns.EMAIL_ADDRESS.matcher(contactEmail).matches()) {
+                        emailError = "Enter a valid email"
+                        valid = false
+                    }
+                    if (valid) {
+                        onContinue(passengerForms.toList(), contactEmail.trim(), contactPhone.trim())
+                    } else {
+                        scope.launch { snackbarHostState.showSnackbar("Please fill in all required fields") }
+                    }
+                },
+                modifier = Modifier.fillMaxWidth().height(52.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = CtaOrange)
+            ) {
+                Text("Continue to Add-Ons", fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
-            val dob = form.etDob.text?.toString()?.trim() ?: ""
-            if (dob.isBlank()) {
-                form.tilDob.error = "Date of birth is required"
-                valid = false
-            } else if (!dob.matches(Regex("\\d{4}-\\d{2}-\\d{2}"))) {
-                form.tilDob.error = "Use format YYYY-MM-DD"
-                valid = false
-            }
-            val passport = form.etPassport.text?.toString()?.trim() ?: ""
-            if (passport.isBlank()) {
-                form.tilPassport.error = "Passport number is required"
-                valid = false
-            }
-            val nationality = form.etNationality.text?.toString()?.trim() ?: ""
-            if (nationality.isBlank()) {
-                form.tilNationality.error = "Nationality is required (e.g. PH)"
-                valid = false
-            }
+
+            Spacer(Modifier.height(16.dp))
         }
-
-        val email = binding.etContactEmail.text?.toString()?.trim() ?: ""
-        if (email.isBlank()) {
-            binding.tilContactEmail.error = "Email is required"
-            valid = false
-        } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            binding.tilContactEmail.error = "Enter a valid email address"
-            valid = false
-        }
-
-        return valid
-    }
-
-    private fun collectAllPassengers() {
-        val email = binding.etContactEmail.text?.toString()?.trim() ?: ""
-        val phone = binding.etContactPhone.text?.toString()?.trim() ?: ""
-        passengerForms.forEachIndexed { index, form ->
-            val firstName = form.etFirstName.text?.toString()?.trim() ?: ""
-            val lastName = form.etLastName.text?.toString()?.trim() ?: ""
-            val dob = form.etDob.text?.toString()?.trim() ?: ""
-            val passport = form.etPassport.text?.toString()?.trim() ?: ""
-            val nationality = form.etNationality.text?.toString()?.trim() ?: ""
-            val gender = if ((form.rgGender.checkedRadioButtonId == R.id.rbMale)) "MALE" else "FEMALE"
-            viewModel.setPassenger(index, firstName, lastName, dob, gender, passport, nationality)
-        }
-        viewModel.setContactInfo(email, phone)
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 }
