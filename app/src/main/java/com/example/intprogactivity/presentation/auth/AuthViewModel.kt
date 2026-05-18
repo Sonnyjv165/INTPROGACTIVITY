@@ -92,8 +92,12 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    fun resetState() { 
-        _authState.value = UiState.Idle 
+    fun setError(message: String) {
+        _authState.value = UiState.Error(message)
+    }
+
+    fun resetState() {
+        _authState.value = UiState.Idle
         _forgotPasswordState.value = UiState.Idle
     }
 }
