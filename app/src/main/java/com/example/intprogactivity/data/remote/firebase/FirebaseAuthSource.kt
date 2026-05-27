@@ -1,6 +1,7 @@
 package com.example.intprogactivity.data.remote.firebase
 
 import com.google.firebase.auth.AuthCredential
+import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
@@ -38,6 +39,14 @@ class FirebaseAuthSource @Inject constructor(
 
     suspend fun sendPasswordReset(email: String) {
         firebaseAuth.sendPasswordResetEmail(email).await()
+    }
+
+    suspend fun changePassword(currentPassword: String, newPassword: String) {
+        val user = firebaseAuth.currentUser ?: error("Not signed in")
+        val email = user.email ?: error("No email on account")
+        val credential = EmailAuthProvider.getCredential(email, currentPassword)
+        user.reauthenticate(credential).await()
+        user.updatePassword(newPassword).await()
     }
 
     fun signOut() = firebaseAuth.signOut()

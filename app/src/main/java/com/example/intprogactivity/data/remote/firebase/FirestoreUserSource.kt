@@ -5,7 +5,9 @@ import com.example.intprogactivity.domain.model.TripCoinTransaction
 import com.example.intprogactivity.domain.model.TransactionType
 import com.example.intprogactivity.domain.model.User
 import com.example.intprogactivity.util.Constants
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -21,7 +23,7 @@ class FirestoreUserSource @Inject constructor(
 ) {
     private fun usersCol() = firestore.collection(Constants.FIRESTORE_USERS)
 
-    suspend fun createUser(uid: String, data: Map<String, Any>) {
+    suspend fun createUser(uid: String, data: Map<String, Any?>) {
         usersCol().document(uid).set(data).await()
     }
 
@@ -30,7 +32,7 @@ class FirestoreUserSource @Inject constructor(
         return if (snapshot.exists()) snapshot.data else null
     }
 
-    suspend fun updateUser(uid: String, updates: Map<String, Any>) {
+    suspend fun updateUser(uid: String, updates: Map<String, Any?>) {
         usersCol().document(uid).set(updates, SetOptions.merge()).await()
     }
 
@@ -71,30 +73,54 @@ class FirestoreUserSource @Inject constructor(
         bookingId?.let { txData["bookingId"] = it }
 
         batch.set(txRef, txData)
-        batch.update(userRef, "tripCoins", com.google.firebase.firestore.FieldValue.increment(amount.toLong()))
+        // Field is "loyaltyPoints" — matches web Firestore schema
+        batch.update(userRef, "loyaltyPoints", FieldValue.increment(amount.toLong()))
         batch.commit().await()
     }
 
     suspend fun getCoinHistory(uid: String): List<Map<String, Any>> {
         val snapshot = usersCol().document(uid)
             .collection(Constants.FIRESTORE_COIN_HISTORY)
-            .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .orderBy("createdAt", Query.Direction.DESCENDING)
             .limit(50)
             .get().await()
         return snapshot.documents.mapNotNull { it.data?.plus("transactionId" to it.id) }
     }
 }
 
-fun Map<String, Any>.toUser(uid: String): User = User(
-    uid = uid,
-    email = this["email"] as? String ?: "",
-    displayName = this["displayName"] as? String ?: "",
-    phone = this["phone"] as? String,
-    photoUrl = this["photoUrl"] as? String,
-    membershipTier = MembershipTier.fromString(this["membershipTier"] as? String ?: "SILVER"),
-    tripCoins = (this["tripCoins"] as? Long)?.toInt() ?: 0,
-    totalBookings = (this["totalBookings"] as? Long)?.toInt() ?: 0,
-    totalSpend = this["totalSpend"] as? Double ?: 0.0,
-    tierExpiryDate = this["tierExpiryDate"] as? Long,
-    createdAt = this["createdAt"] as? Long ?: 0L
-)
+/**
+ * Maps a Firestore user document to the domain [User] model.
+ * Field names match the web project's Firestore schema.
+ */
+fun Map<String, Any>.toUser(uid: String): User {
+    val firstName = this["firstName"] as? String ?: ""
+    val lastName  = this["lastName"]  as? String ?: ""
+    return User(
+        uid           = uid,
+        email         = this["email"]         as? String ?: "",
+        firstName     = firstName,
+        lastName      = lastName,
+        middleInitial = this["middleInitial"] as? String ?: "",
+        suffix        = this["suffix"]        as? String ?: "",
+        // displayName stored separately but fall back to "firstName lastName"
+        displayName   = (this["displayName"] as? String)
+                            ?.ifBlank { "$firstName $lastName".trim() }
+                            ?: "$firstName $lastName".trim(),
+        phone         = this["phone"] as? String,
+        photoUrl      = this["photoUrl"] as? String,
+        nationality   = this["nationality"] as? String,
+        dob           = this["dob"] as? String,         // web field name: "dob"
+        role          = this["role"]   as? String ?: "user",
+        status        = this["status"] as? String ?: "ACTIVE",
+        providerId    = this["providerId"] as? String,
+        membershipTier = MembershipTier.fromString(this["membershipTier"] as? String ?: "SILVER"),
+        loyaltyPoints = (this["loyaltyPoints"] as? Long)?.toInt()    // web field name: "loyaltyPoints"
+                            ?: (this["tripCoins"] as? Long)?.toInt()  // backwards-compat with old docs
+                            ?: 0,
+        totalBookings = (this["totalBookings"] as? Long)?.toInt() ?: 0,
+        totalSpend    = (this["totalSpend"] as? Double)
+                            ?: (this["totalSpend"] as? Long)?.toDouble() ?: 0.0,
+        tierExpiryDate = this["tierExpiryDate"] as? Long,
+        createdAt     = this["createdAt"] as? Long ?: 0L
+    )
+}

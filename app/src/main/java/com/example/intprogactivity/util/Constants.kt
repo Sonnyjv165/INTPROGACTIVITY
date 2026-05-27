@@ -8,6 +8,8 @@ object Constants {
     const val FIRESTORE_BOOKINGS = "bookings"
     const val FIRESTORE_ALERTS = "price_alerts"
     const val FIRESTORE_COIN_HISTORY = "coin_history"
+    const val FIRESTORE_SUPPORT_TICKETS = "support_tickets"
+    const val FIRESTORE_PROMOTIONS = "promotion"   // matches web collection name
 
     const val MIN_BOOKING_HOURS_ADVANCE = 2L
     const val MIN_CANCEL_HOURS_BEFORE = 24L

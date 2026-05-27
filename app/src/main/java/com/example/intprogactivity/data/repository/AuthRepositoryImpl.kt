@@ -40,26 +40,46 @@ class AuthRepositoryImpl @Inject constructor(
         val fbUser = authSource.signInWithCredential(credential)
         var userData = userSource.getUser(fbUser.uid)
         if (userData == null) {
-            val newUser = buildUserMap(fbUser.uid, fbUser.email ?: "", fbUser.displayName ?: "")
+            // Split Firebase displayName into first/last for the web-compatible schema
+            val parts = (fbUser.displayName ?: "").trim().split(" ", limit = 2)
+            val newUser = buildUserMap(
+                uid       = fbUser.uid,
+                email     = fbUser.email ?: "",
+                firstName = parts.getOrNull(0) ?: "",
+                lastName  = parts.getOrNull(1) ?: "",
+                providerId = fbUser.providerId
+            )
             userSource.createUser(fbUser.uid, newUser)
-            userData = newUser
+            userData = newUser.filterValues { it != null } as Map<String, Any>
         }
         Result.Success(userData.toUser(fbUser.uid))
     } catch (e: Exception) {
         Result.Error(e, mapFirebaseError(e))
     }
 
-    override suspend fun register(email: String, password: String, displayName: String): Result<User> = try {
+    override suspend fun register(
+        email: String,
+        password: String,
+        firstName: String,
+        lastName: String
+    ): Result<User> = try {
         val fbUser = authSource.createUserWithEmail(email, password)
-        val userMap = buildUserMap(fbUser.uid, email, displayName)
+        val userMap = buildUserMap(fbUser.uid, email, firstName, lastName, null)
         userSource.createUser(fbUser.uid, userMap)
-        Result.Success(userMap.toUser(fbUser.uid))
+        Result.Success((userMap.filterValues { it != null } as Map<String, Any>).toUser(fbUser.uid))
     } catch (e: Exception) {
         Result.Error(e, mapFirebaseError(e))
     }
 
     override suspend fun sendPasswordResetEmail(email: String): Result<Unit> = try {
         authSource.sendPasswordReset(email)
+        Result.Success(Unit)
+    } catch (e: Exception) {
+        Result.Error(e, mapFirebaseError(e))
+    }
+
+    override suspend fun changePassword(currentPassword: String, newPassword: String): Result<Unit> = try {
+        authSource.changePassword(currentPassword, newPassword)
         Result.Success(Unit)
     } catch (e: Exception) {
         Result.Error(e, mapFirebaseError(e))
@@ -74,14 +94,32 @@ class AuthRepositoryImpl @Inject constructor(
 
     override fun isUserLoggedIn(): Boolean = authSource.getCurrentFirebaseUser() != null
 
-    private fun buildUserMap(uid: String, email: String, displayName: String): Map<String, Any> = mapOf(
-        "email" to email,
-        "displayName" to displayName,
+    private fun buildUserMap(
+        uid: String,
+        email: String,
+        firstName: String,
+        lastName: String,
+        providerId: String?
+    ): Map<String, Any?> = mapOf(
+        "uid"           to uid,
+        "email"         to email,
+        "firstName"     to firstName,
+        "lastName"      to lastName,
+        "middleInitial" to "",
+        "suffix"        to "",
+        "displayName"   to "$firstName $lastName".trim(),
+        "dob"           to "",
+        "phone"         to "",
+        "nationality"   to "",
+        "photoUrl"      to "",
+        "providerId"    to providerId,
+        "role"          to "user",
+        "status"        to "ACTIVE",
         "membershipTier" to MembershipTier.SILVER.name,
-        "tripCoins" to 0,
+        "loyaltyPoints" to 0,
         "totalBookings" to 0,
-        "totalSpend" to 0.0,
-        "createdAt" to System.currentTimeMillis()
+        "totalSpend"    to 0.0,
+        "createdAt"     to System.currentTimeMillis()
     )
 
     private fun mapFirebaseError(e: Exception): String = when {

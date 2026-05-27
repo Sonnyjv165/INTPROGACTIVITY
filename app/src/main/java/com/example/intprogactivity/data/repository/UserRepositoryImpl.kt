@@ -26,14 +26,26 @@ class UserRepositoryImpl @Inject constructor(
     }
 
     override suspend fun createUserProfile(user: User): Result<Unit> = try {
+        val fullName = user.displayName.ifBlank { "${user.firstName} ${user.lastName}".trim() }
         val data = mapOf(
-            "email" to user.email,
-            "displayName" to user.displayName,
+            "email"         to user.email,
+            "firstName"     to user.firstName,
+            "lastName"      to user.lastName,
+            "middleInitial" to user.middleInitial,
+            "suffix"        to user.suffix,
+            "displayName"   to fullName,
+            "dob"           to (user.dob ?: ""),
+            "phone"         to (user.phone ?: ""),
+            "nationality"   to (user.nationality ?: ""),
+            "photoUrl"      to (user.photoUrl ?: ""),
+            "providerId"    to user.providerId,
+            "role"          to user.role,
+            "status"        to user.status,
             "membershipTier" to user.membershipTier.name,
-            "tripCoins" to user.tripCoins,
+            "loyaltyPoints" to user.loyaltyPoints,
             "totalBookings" to user.totalBookings,
-            "totalSpend" to user.totalSpend,
-            "createdAt" to user.createdAt
+            "totalSpend"    to user.totalSpend,
+            "createdAt"     to user.createdAt
         )
         userSource.createUser(user.uid, data)
         Result.Success(Unit)
@@ -42,10 +54,18 @@ class UserRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateUserProfile(user: User): Result<Unit> = try {
-        val updates = mutableMapOf<String, Any>(
-            "displayName" to user.displayName
+        val fullName = "${user.firstName} ${user.lastName}".trim()
+            .ifBlank { user.displayName }
+        val updates = mutableMapOf<String, Any?>(
+            "firstName"     to user.firstName,
+            "lastName"      to user.lastName,
+            "middleInitial" to user.middleInitial,
+            "suffix"        to user.suffix,
+            "displayName"   to fullName,
+            "phone"         to (user.phone ?: ""),
+            "nationality"   to (user.nationality ?: ""),
+            "dob"           to (user.dob ?: "")
         )
-        user.phone?.let { updates["phone"] = it }
         userSource.updateUser(user.uid, updates)
         Result.Success(Unit)
     } catch (e: Exception) {

@@ -12,8 +12,10 @@ import com.example.intprogactivity.domain.model.PassengerType
 import com.example.intprogactivity.domain.model.SeatSelection
 import com.example.intprogactivity.domain.repository.AuthRepository
 import com.example.intprogactivity.domain.usecase.booking.CreateBookingUseCase
+import com.example.intprogactivity.util.Constants
 import com.example.intprogactivity.util.Result
 import com.example.intprogactivity.util.UiState
+import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -23,13 +25,66 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
+
+data class PromoResult(
+    val code: String,
+    val type: String,       // "percentage" or "fixed"
+    val value: Double,      // e.g. 10.0 = 10% or ₱500
+    val discountAmount: Double
+)
 
 @HiltViewModel
 class BookingViewModel @Inject constructor(
     private val authRepository: AuthRepository,
-    private val createBookingUseCase: CreateBookingUseCase
+    private val createBookingUseCase: CreateBookingUseCase,
+    private val firestore: FirebaseFirestore
 ) : ViewModel() {
+
+    // Promo code state
+    private val _promoState = MutableStateFlow<UiState<PromoResult>>(UiState.Idle)
+    val promoState: StateFlow<UiState<PromoResult>> = _promoState.asStateFlow()
+
+    private val _appliedPromo = MutableStateFlow<PromoResult?>(null)
+    val appliedPromo: StateFlow<PromoResult?> = _appliedPromo.asStateFlow()
+
+    fun applyPromoCode(code: String) {
+        if (code.isBlank()) return
+        viewModelScope.launch {
+            _promoState.value = UiState.Loading
+            try {
+                val doc = firestore.collection(Constants.FIRESTORE_PROMOTIONS)
+                    .document(code.uppercase().trim())
+                    .get().await()
+                if (!doc.exists()) {
+                    _promoState.value = UiState.Error("Promo code not found")
+                    return@launch
+                }
+                val isActive = doc.getBoolean("isActive") ?: false
+                if (!isActive) {
+                    _promoState.value = UiState.Error("This promo code has expired")
+                    return@launch
+                }
+                val type = doc.getString("type") ?: "fixed"
+                val value = doc.getDouble("value") ?: 0.0
+                val base = baseFlightPrice()
+                val discountAmount = if (type == "percentage") base * (value / 100.0) else value
+                val promo = PromoResult(code.uppercase().trim(), type, value, discountAmount)
+                _appliedPromo.value = promo
+                _promoState.value = UiState.Success(promo)
+            } catch (e: Exception) {
+                _promoState.value = UiState.Error("Failed to validate promo code")
+            }
+        }
+    }
+
+    fun removePromoCode() {
+        _appliedPromo.value = null
+        _promoState.value = UiState.Idle
+    }
+
+    fun resetPromoState() { _promoState.value = UiState.Idle }
 
     private val _flightOffer = MutableStateFlow<FlightOffer?>(null)
     val flightOffer: StateFlow<FlightOffer?> = _flightOffer.asStateFlow()
@@ -179,29 +234,28 @@ class BookingViewModel @Inject constructor(
         _selectedCabinClass.value = "ECONOMY"
     }
 
-    fun totalPrice(): Double {
-        val cabinMultiplier = when (_selectedCabinClass.value) {
-            "PREMIUM_ECONOMY" -> 1.4
-            "BUSINESS" -> 2.5
-            "FIRST" -> 4.0
-            else -> 1.0
-        }
-        val discountFactor = 1.0 - currentUserTier.value.discountPercent()
-        val flightPrice = (_flightOffer.value?.totalPriceDouble() ?: 0.0) * cabinMultiplier * discountFactor
-        val returnPrice = (_returnFlightOffer.value?.totalPriceDouble() ?: 0.0) * cabinMultiplier * discountFactor
-        return flightPrice + returnPrice + _addOns.value.totalCost()
+    private fun cabinMultiplier() = when (_selectedCabinClass.value) {
+        "PREMIUM_ECONOMY" -> 1.4
+        "BUSINESS" -> 2.5
+        "FIRST" -> 4.0
+        else -> 1.0
     }
 
-    fun flightDiscount(): Double {
-        val cabinMultiplier = when (_selectedCabinClass.value) {
-            "PREMIUM_ECONOMY" -> 1.4
-            "BUSINESS" -> 2.5
-            "FIRST" -> 4.0
-            else -> 1.0
-        }
-        val discount = currentUserTier.value.discountPercent()
-        val flightBase = (_flightOffer.value?.totalPriceDouble() ?: 0.0) * cabinMultiplier
-        val returnBase = (_returnFlightOffer.value?.totalPriceDouble() ?: 0.0) * cabinMultiplier
-        return (flightBase + returnBase) * discount
+    private fun baseFlightPrice(): Double {
+        val m = cabinMultiplier()
+        return ((_flightOffer.value?.totalPriceDouble() ?: 0.0) +
+                (_returnFlightOffer.value?.totalPriceDouble() ?: 0.0)) * m
     }
+
+    fun totalPrice(): Double {
+        val tierDiscount  = baseFlightPrice() * currentUserTier.value.discountPercent()
+        val promoDiscount = _appliedPromo.value?.discountAmount ?: 0.0
+        return (baseFlightPrice() - tierDiscount - promoDiscount).coerceAtLeast(0.0) +
+               _addOns.value.totalCost()
+    }
+
+    fun flightDiscount(): Double =
+        baseFlightPrice() * currentUserTier.value.discountPercent()
+
+    fun promoDiscount(): Double = _appliedPromo.value?.discountAmount ?: 0.0
 }

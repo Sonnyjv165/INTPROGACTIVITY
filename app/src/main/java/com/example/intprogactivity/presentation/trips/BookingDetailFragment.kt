@@ -140,13 +140,16 @@ fun BookingDetailScreen(
     LaunchedEffect(bookingId) {
         withContext(Dispatchers.IO) {
             bookingRepository.getBookingById(bookingId)
-        }.onSuccess {
-            booking = it
-            isLoading = false
-        }.onFailure {
-            isLoading = false
-            snackbarHostState.showSnackbar("Failed to load booking")
-        }
+        }.fold(
+            onSuccess = {
+                booking = it
+                isLoading = false
+            },
+            onFailure = {
+                isLoading = false
+                snackbarHostState.showSnackbar("Failed to load booking")
+            }
+        )
     }
 
     LaunchedEffect(cancelState) {

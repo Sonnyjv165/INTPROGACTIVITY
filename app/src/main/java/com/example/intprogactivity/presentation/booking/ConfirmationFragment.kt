@@ -115,7 +115,10 @@ fun ConfirmationScreen(
     LaunchedEffect(bookingId) {
         withContext(Dispatchers.IO) {
             bookingRepository.getBookingById(bookingId)
-        }.onSuccess { booking = it }
+        }.fold(
+            onSuccess = { booking = it },
+            onFailure = {}
+        )
     }
 
     val offer = viewModel.flightOffer.value

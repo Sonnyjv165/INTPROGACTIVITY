@@ -3,16 +3,29 @@ package com.example.intprogactivity.domain.model
 data class User(
     val uid: String = "",
     val email: String = "",
-    val displayName: String = "",
+    // Split name fields — matches web Firestore schema
+    val firstName: String = "",
+    val lastName: String = "",
+    val middleInitial: String = "",
+    val suffix: String = "",
+    val displayName: String = "",       // "firstName lastName" — kept for convenience + cross-platform
     val phone: String? = null,
     val photoUrl: String? = null,
+    val nationality: String? = null,
+    val dob: String? = null,            // "yyyy-MM-dd" — matches web field name "dob"
+    val role: String = "user",          // matches web field
+    val status: String = "ACTIVE",      // matches web field
+    val providerId: String? = null,     // matches web field (null for email auth)
     val membershipTier: MembershipTier = MembershipTier.SILVER,
-    val tripCoins: Int = 0,
+    val loyaltyPoints: Int = 0,         // matches web field "loyaltyPoints" (was tripCoins)
     val totalBookings: Int = 0,
     val totalSpend: Double = 0.0,
     val tierExpiryDate: Long? = null,
     val createdAt: Long = System.currentTimeMillis()
-)
+) {
+    /** Convenience: returns "First Last" or displayName, whichever is populated. */
+    fun fullName(): String = displayName.ifBlank { "$firstName $lastName".trim() }
+}
 
 enum class MembershipTier {
     GUEST, SILVER, GOLD, PLATINUM, DIAMOND, DIAMOND_PLUS, BLACK_DIAMOND;

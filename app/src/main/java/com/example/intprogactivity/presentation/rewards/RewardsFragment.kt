@@ -192,7 +192,7 @@ private fun CoinBalanceCard(user: User) {
             Column {
                 Text("Trip Coins Balance", fontSize = 13.sp, color = Color.White.copy(alpha = 0.8f))
                 Text(
-                    String.format("%,d", user.tripCoins),
+                    String.format("%,d", user.loyaltyPoints),
                     fontWeight = FontWeight.Bold,
                     fontSize = 28.sp,
                     color = Color.White
@@ -220,7 +220,7 @@ private fun TierProgressCard(user: User) {
             if (bookings >= 5) "Tier upgrade pending" else "Book ${5 - bookings} more flight${if (5 - bookings != 1) "s" else ""} to reach Gold"
         )
         MembershipTier.GOLD -> {
-            val p = minOf(((bookings / 10.0f) + (spend / 50_000.0f)) / 2f, 1f)
+            val p = minOf(((bookings / 10.0f) + (spend.toFloat() / 50_000.0f)) / 2f, 1f)
             Triple(
                 "Platinum",
                 p,
@@ -228,11 +228,11 @@ private fun TierProgressCard(user: User) {
             )
         }
         MembershipTier.PLATINUM -> {
-            val p = minOf(((bookings / 25.0f) + (spend / 500_000.0f)) / 2f, 1f)
+            val p = minOf(((bookings / 25.0f) + (spend.toFloat() / 500_000.0f)) / 2f, 1f)
             Triple("Diamond", p, "Need 25 bookings (${bookings}/25) + ₱500,000 spend for Diamond")
         }
         MembershipTier.DIAMOND -> {
-            val p = minOf((spend / 2_000_000.0f), 1f)
+            val p = minOf((spend.toFloat() / 2_000_000.0f), 1f)
             Triple("Diamond+", p, "Need ₱2,000,000 annual spend for Diamond+")
         }
         MembershipTier.DIAMOND_PLUS -> Triple("Black Diamond", 1f, "Diamond+ — invite-only above")

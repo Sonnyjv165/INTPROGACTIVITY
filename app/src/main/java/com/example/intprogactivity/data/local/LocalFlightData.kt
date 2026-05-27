@@ -5,19 +5,23 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
+/**
+ * Internal DTO used by both [LocalFlightData] and [FirestoreFlightSource].
+ * Kept at package-level (not nested) so KAPT can generate correct Java stubs.
+ */
+internal data class RouteTemplate(
+    val airlineCode: String,
+    val flightNumber: String,
+    val departureHour: Int,
+    val departureMinute: Int,
+    val durationMinutes: Int,
+    val basePricePhp: Double,
+    val aircraft: String = "320"
+)
+
 object LocalFlightData {
 
-    private data class RouteTemplate(
-        val airlineCode: String,
-        val flightNumber: String,
-        val departureHour: Int,
-        val departureMinute: Int,
-        val durationMinutes: Int,
-        val basePricePhp: Double,
-        val aircraft: String = "320"
-    )
-
-    private val routes: Map<String, List<RouteTemplate>> = mapOf(
+    internal val routes: Map<String, List<RouteTemplate>> = mapOf(
         "MNL-CEB" to listOf(
             RouteTemplate("5J", "561", 5, 50, 80, 1899.0),
             RouteTemplate("5J", "563", 8, 10, 80, 2299.0),

@@ -240,7 +240,7 @@ fun HomeScreen(
                     val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
                     val greeting = when {
                         currentUser != null -> {
-                            val name = currentUser!!.displayName.split(" ").first()
+                            val name = currentUser!!.firstName.ifBlank { currentUser!!.fullName().split(" ").first() }
                             when {
                                 hour < 12 -> "Good morning, $name"
                                 hour < 17 -> "Good afternoon, $name"
@@ -280,7 +280,7 @@ fun HomeScreen(
                             )
                             Spacer(Modifier.width(6.dp))
                             Text(
-                                text = "${currentUser!!.membershipTier.displayName()} · ${String.format("%,d", currentUser!!.tripCoins)} Trip Coins",
+                                text = "${currentUser!!.membershipTier.displayName()} · ${String.format("%,d", currentUser!!.loyaltyPoints)} Trip Coins",
                                 color = Color.White,
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Medium
@@ -570,7 +570,7 @@ fun DealCard(deal: DealItem, onClick: () -> Unit) {
     ) {
         Box {
             AsyncImage(
-                model = deal.imageRes,
+                model = deal.imageResId,
                 contentDescription = deal.destination,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier

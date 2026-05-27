@@ -203,7 +203,7 @@ fun SearchResultsScreen(
                     val modes = SortMode.values()
                     val current = sortMode
                     FilterChip(
-                        selected = current != SortMode.RECOMMENDED,
+                        selected = current != SortMode.PRICE,
                         onClick = {
                             val next = modes[(current.ordinal + 1) % modes.size]
                             viewModel.setSortMode(next)

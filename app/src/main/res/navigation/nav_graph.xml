@@ -217,6 +217,12 @@
             android:id="@+id/action_profile_to_alerts"
             app:destination="@id/priceAlertsFragment" />
         <action
+            android:id="@+id/action_profile_to_support"
+            app:destination="@id/supportFragment" />
+        <action
+            android:id="@+id/action_profile_to_find_booking"
+            app:destination="@id/findBookingFragment" />
+        <action
             android:id="@+id/action_profile_to_login"
             app:destination="@id/loginFragment"
             app:popUpTo="@id/homeFragment"
@@ -228,6 +234,20 @@
         android:name="com.example.intprogactivity.presentation.profile.PriceAlertsFragment"
         android:label="Price Alerts"
         tools:layout="@layout/fragment_price_alerts" />
+
+    <fragment
+        android:id="@+id/supportFragment"
+        android:name="com.example.intprogactivity.presentation.profile.SupportFragment"
+        android:label="Support Tickets" />
+
+    <fragment
+        android:id="@+id/findBookingFragment"
+        android:name="com.example.intprogactivity.presentation.trips.FindBookingFragment"
+        android:label="Find My Booking">
+        <action
+            android:id="@+id/action_find_booking_to_detail"
+            app:destination="@id/bookingDetailFragment" />
+    </fragment>
 
     <!-- Rewards -->
     <fragment

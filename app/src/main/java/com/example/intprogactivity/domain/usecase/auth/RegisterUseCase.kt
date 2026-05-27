@@ -12,16 +12,19 @@ class RegisterUseCase @Inject constructor(private val authRepository: AuthReposi
         email: String,
         password: String,
         confirmPassword: String,
-        displayName: String
+        firstName: String,
+        lastName: String
     ): Result<User> {
-        if (displayName.isBlank())
-            return Result.Error(Exception("Full name is required."))
+        if (firstName.isBlank())
+            return Result.Error(Exception("First name is required."))
+        if (lastName.isBlank())
+            return Result.Error(Exception("Last name is required."))
         if (!email.isValidEmail())
             return Result.Error(Exception("Please enter a valid email address."))
         if (!password.isValidPassword())
             return Result.Error(Exception("Password must be at least 8 characters, include an uppercase letter and a number."))
         if (password != confirmPassword)
             return Result.Error(Exception("Passwords do not match."))
-        return authRepository.register(email, password, displayName)
+        return authRepository.register(email, password, firstName, lastName)
     }
 }

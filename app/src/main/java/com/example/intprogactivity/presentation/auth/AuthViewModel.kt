@@ -61,10 +61,10 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    fun register(email: String, password: String, confirmPassword: String, displayName: String) {
+    fun register(email: String, password: String, confirmPassword: String, firstName: String, lastName: String) {
         viewModelScope.launch {
             _authState.value = UiState.Loading
-            val result = registerUseCase(email, password, confirmPassword, displayName)
+            val result = registerUseCase(email, password, confirmPassword, firstName, lastName)
             _authState.value = when (result) {
                 is com.example.intprogactivity.util.Result.Success -> UiState.Success(result.data)
                 is com.example.intprogactivity.util.Result.Error -> UiState.Error(result.exception.message ?: "Registration failed")

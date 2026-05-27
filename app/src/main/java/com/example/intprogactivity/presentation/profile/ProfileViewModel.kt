@@ -33,6 +33,9 @@ class ProfileViewModel @Inject constructor(
     private val _updateProfileState = MutableStateFlow<UiState<Unit>>(UiState.Idle)
     val updateProfileState: StateFlow<UiState<Unit>> = _updateProfileState.asStateFlow()
 
+    private val _changePasswordState = MutableStateFlow<UiState<Unit>>(UiState.Idle)
+    val changePasswordState: StateFlow<UiState<Unit>> = _changePasswordState.asStateFlow()
+
     fun signOut() {
         viewModelScope.launch {
             signOutUseCase()
@@ -40,24 +43,57 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    fun updateProfile(displayName: String, phone: String) {
+    fun updateProfile(
+        firstName: String,
+        lastName: String,
+        middleInitial: String,
+        suffix: String,
+        phone: String,
+        nationality: String,
+        dob: String                 // matches web field name "dob"
+    ) {
         viewModelScope.launch {
             val user = authRepository.currentUser.first() ?: return@launch
             _updateProfileState.value = UiState.Loading
-            val updated = user.copy(displayName = displayName, phone = phone)
+            val updated = user.copy(
+                firstName     = firstName.trim(),
+                lastName      = lastName.trim(),
+                middleInitial = middleInitial.trim(),
+                suffix        = suffix.trim(),
+                displayName   = "$firstName $lastName".trim(),
+                phone         = phone.takeIf { it.isNotBlank() },
+                nationality   = nationality.takeIf { it.isNotBlank() },
+                dob           = dob.takeIf { it.isNotBlank() }
+            )
             when (userRepository.updateUserProfile(updated)) {
-                is com.example.intprogactivity.util.Result.Success -> {
+                is com.example.intprogactivity.util.Result.Success ->
                     _updateProfileState.value = UiState.Success(Unit)
-                }
-                is com.example.intprogactivity.util.Result.Error -> {
+                is com.example.intprogactivity.util.Result.Error ->
                     _updateProfileState.value = UiState.Error("Failed to update profile")
-                }
                 else -> Unit
             }
         }
     }
 
-    fun resetUpdateState() {
-        _updateProfileState.value = UiState.Idle
+    fun changePassword(currentPassword: String, newPassword: String) {
+        if (currentPassword.isBlank() || newPassword.length < 6) {
+            _changePasswordState.value = UiState.Error("Password must be at least 6 characters")
+            return
+        }
+        viewModelScope.launch {
+            _changePasswordState.value = UiState.Loading
+            when (val result = authRepository.changePassword(currentPassword, newPassword)) {
+                is com.example.intprogactivity.util.Result.Success ->
+                    _changePasswordState.value = UiState.Success(Unit)
+                is com.example.intprogactivity.util.Result.Error ->
+                    _changePasswordState.value = UiState.Error(
+                        result.message ?: "Password change failed. Check your current password."
+                    )
+                else -> Unit
+            }
+        }
     }
+
+    fun resetUpdateState() { _updateProfileState.value = UiState.Idle }
+    fun resetPasswordState() { _changePasswordState.value = UiState.Idle }
 }
