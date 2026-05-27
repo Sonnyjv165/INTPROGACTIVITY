@@ -116,7 +116,12 @@ fun AddOnsScreen(
     var baggageKg by remember { mutableStateOf(0) }
     var mealType by remember { mutableStateOf("") }
     var insurance by remember { mutableStateOf(false) }
-    val selectedSeat = viewModel.selectedSeat()
+    val seatSelections = addOns.seatSelections.filter { it.seatNumber.isNotEmpty() }
+    val seatLabel = when (seatSelections.size) {
+        0    -> null
+        1    -> "Seat ${seatSelections[0].seatNumber} selected"
+        else -> "${seatSelections.size} seats selected (${seatSelections.joinToString { it.seatNumber }})"
+    }
 
     val addOnsTotal = addOns.totalCost()
 
@@ -224,9 +229,9 @@ fun AddOnsScreen(
                     Column(modifier = Modifier.weight(1f)) {
                         Text("Seat Selection", fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
                         Text(
-                            if (selectedSeat != null) "Seat $selectedSeat selected" else "No seat selected (random assignment)",
+                            seatLabel ?: "No seat selected (random assignment)",
                             fontSize = 13.sp,
-                            color = if (selectedSeat != null) BrandPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                            color = if (seatLabel != null) BrandPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)

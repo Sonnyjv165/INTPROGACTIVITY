@@ -366,7 +366,7 @@ fun CheckoutScreen(
                         "MAYA"  -> mayaNumber.length == 10  && mayaNumber.startsWith("9")
                         else    -> true
                     }
-                    if (valid) viewModel.confirmBooking()
+                    if (valid) viewModel.confirmBooking(paymentMethod)
                 },
                 enabled = !isLoading,
                 modifier = Modifier.fillMaxWidth().height(52.dp),

@@ -36,8 +36,9 @@ class TripsViewModel @Inject constructor(
 
     val upcomingBookings: StateFlow<List<Booking>> = bookingsState
         .map { state ->
-            (state as? UiState.Success)?.data?.filter { it.status == BookingStatus.CONFIRMED }
-                ?: emptyList()
+            (state as? UiState.Success)?.data?.filter {
+                it.status == BookingStatus.CONFIRMED || it.status == BookingStatus.PENDING
+            } ?: emptyList()
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 

@@ -230,15 +230,23 @@ fun BookingCard(booking: Booking, onClick: () -> Unit) {
 
             Spacer(Modifier.height(10.dp))
 
-            if (firstSeg != null && lastSeg != null) {
+            // Derive display values: prefer parsed JSON, fall back to booking fields
+            val originCode = firstSeg?.departure?.iataCode?.takeIf { it.isNotEmpty() }
+                ?: booking.originIata
+            val destCode = lastSeg?.arrival?.iataCode?.takeIf { it.isNotEmpty() }
+                ?: booking.destinationIata
+            val airlineLabel = firstSeg?.carrierCode?.takeIf { it.isNotEmpty() }
+                ?: booking.airlineName
+
+            if (originCode.isNotEmpty() || destCode.isNotEmpty()) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column {
-                        Text(firstSeg.departure.iataCode, fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                        Text(firstSeg.carrierCode, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(originCode.ifEmpty { "—" }, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                        Text(airlineLabel, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Icon(
                         Icons.Filled.AirplanemodeActive,
@@ -247,7 +255,7 @@ fun BookingCard(booking: Booking, onClick: () -> Unit) {
                         modifier = Modifier.size(24.dp)
                     )
                     Column(horizontalAlignment = Alignment.End) {
-                        Text(lastSeg.arrival.iataCode, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                        Text(destCode.ifEmpty { "—" }, fontWeight = FontWeight.Bold, fontSize = 20.sp)
                     }
                 }
             } else {

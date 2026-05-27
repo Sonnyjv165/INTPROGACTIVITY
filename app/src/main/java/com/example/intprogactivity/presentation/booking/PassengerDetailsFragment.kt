@@ -5,45 +5,17 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
@@ -66,6 +38,8 @@ import com.example.intprogactivity.presentation.theme.TripFlightsTheme
 import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
 
 @AndroidEntryPoint
 class PassengerDetailsFragment : Fragment() {
@@ -135,6 +109,182 @@ data class PassengerFormState(
     val type: PassengerType = PassengerType.ADULT
 )
 
+// ── Phone number field with +63 country-code prefix ──────────────────────────
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PhoneInputField(
+    digits: String,              // raw digit-only string, 10 chars max
+    onDigitsChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    // Format "9171234567" → "917 123 4567"  (groups: 3 – 3 – 4)
+    val formatted = buildString {
+        digits.forEachIndexed { i, c ->
+            if (i == 3 || i == 6) append(' ')
+            append(c)
+        }
+    }
+
+    OutlinedTextField(
+        value = formatted,
+        onValueChange = { input ->
+            // Strip spaces/non-digits, cap at 10 digits
+            val raw = input.filter { it.isDigit() }.take(10)
+            onDigitsChange(raw)
+        },
+        label = { Text("Phone Number") },
+        prefix = {
+            // "+63 │ " prefix that can't be edited
+            Row(
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+            ) {
+                Text(
+                    "+63",
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 15.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(Modifier.width(6.dp))
+                Box(
+                    modifier = Modifier
+                        .width(1.dp)
+                        .height(20.dp)
+                        .background(MaterialTheme.colorScheme.outline)
+                )
+                Spacer(Modifier.width(8.dp))
+            }
+        },
+        placeholder = { Text("9XX XXX XXXX") },
+        singleLine = true,
+        modifier = modifier,
+        shape = RoundedCornerShape(8.dp),
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Number,
+            imeAction = ImeAction.Done
+        )
+    )
+}
+
+// ── Date-of-Birth picker field ────────────────────────────────────────────────
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DobPickerField(
+    dob: String,
+    passengerType: PassengerType,
+    onDobSelected: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var showPicker by remember { mutableStateOf(false) }
+    val fmt = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) }
+
+    // Compute sensible default year based on passenger type
+    val defaultMillis = remember(passengerType) {
+        val cal = Calendar.getInstance()
+        when (passengerType) {
+            PassengerType.ADULT  -> cal.add(Calendar.YEAR, -25)
+            PassengerType.CHILD  -> cal.add(Calendar.YEAR, -8)
+            PassengerType.INFANT -> cal.add(Calendar.YEAR, -1)
+        }
+        cal.timeInMillis
+    }
+
+    val initialMillis = remember(dob) {
+        if (dob.isNotBlank()) {
+            try { fmt.parse(dob)?.time ?: defaultMillis }
+            catch (_: Exception) { defaultMillis }
+        } else defaultMillis
+    }
+
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = initialMillis,
+        // Restrict selectable range: no future dates
+        selectableDates = object : SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long) =
+                utcTimeMillis <= System.currentTimeMillis()
+        }
+    )
+
+    // Tappable read-only field
+    Box(modifier = modifier) {
+        OutlinedTextField(
+            value = dob.ifBlank { "" },
+            onValueChange = {},
+            readOnly = true,
+            label = { Text("Date of Birth") },
+            placeholder = { Text("Tap to select") },
+            trailingIcon = {
+                Icon(
+                    Icons.Filled.CalendarToday,
+                    contentDescription = "Pick date",
+                    tint = BrandPrimary,
+                    modifier = Modifier.size(20.dp)
+                )
+            },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(8.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                disabledBorderColor = MaterialTheme.colorScheme.outline,
+                disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                disabledTrailingIconColor = BrandPrimary,
+                disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant
+            ),
+            enabled = false  // prevents keyboard, field looks normal via custom colors
+        )
+        // Invisible overlay to capture taps (enabled=false blocks clicks on TextField itself)
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .clickable { showPicker = true }
+        )
+    }
+
+    if (showPicker) {
+        DatePickerDialog(
+            onDismissRequest = { showPicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            onDobSelected(fmt.format(Date(millis)))
+                        }
+                        showPicker = false
+                    }
+                ) { Text("OK", color = BrandPrimary) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPicker = false }) {
+                    Text("Cancel", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        ) {
+            DatePicker(
+                state = datePickerState,
+                showModeToggle = true,   // lets user switch to manual-type mode
+                title = {
+                    Text(
+                        "Select Date of Birth",
+                        modifier = Modifier.padding(start = 24.dp, end = 12.dp, top = 16.dp),
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                },
+                headline = {
+                    DatePickerDefaults.DatePickerHeadline(
+                        selectedDateMillis = datePickerState.selectedDateMillis,
+                        displayMode = datePickerState.displayMode,
+                        dateFormatter = DatePickerDefaults.dateFormatter(),
+                        modifier = Modifier.padding(horizontal = 24.dp)
+                    )
+                }
+            )
+        }
+    }
+}
+
+// ── Screen ────────────────────────────────────────────────────────────────────
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PassengerDetailsScreen(
@@ -157,8 +307,7 @@ fun PassengerDetailsScreen(
     }
 
     var contactEmail by remember { mutableStateOf("") }
-    var contactPhone by remember { mutableStateOf("") }
-
+    var contactPhone by remember { mutableStateOf("") }   // raw digits only, no country code
     var emailError by remember { mutableStateOf<String?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -189,11 +338,11 @@ fun PassengerDetailsScreen(
                 .padding(padding)
                 .padding(horizontal = 16.dp, vertical = 16.dp)
         ) {
-            // Passenger forms
+            // ── Passenger cards ──────────────────────────────────────────────
             passengerForms.forEachIndexed { index, form ->
                 val typeLabel = when (form.type) {
-                    PassengerType.ADULT -> "Adult"
-                    PassengerType.CHILD -> "Child"
+                    PassengerType.ADULT  -> "Adult"
+                    PassengerType.CHILD  -> "Child"
                     PassengerType.INFANT -> "Infant"
                 }
                 Card(
@@ -211,6 +360,7 @@ fun PassengerDetailsScreen(
                         )
                         Spacer(Modifier.height(12.dp))
 
+                        // First / Last name
                         Row(modifier = Modifier.fillMaxWidth()) {
                             OutlinedTextField(
                                 value = form.firstName,
@@ -235,14 +385,12 @@ fun PassengerDetailsScreen(
 
                         Spacer(Modifier.height(8.dp))
 
-                        OutlinedTextField(
-                            value = form.dob,
-                            onValueChange = { passengerForms[index] = form.copy(dob = it) },
-                            label = { Text("Date of Birth (YYYY-MM-DD)") },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(8.dp),
-                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                        // ── Date of Birth — calendar picker ──────────────────
+                        DobPickerField(
+                            dob = form.dob,
+                            passengerType = form.type,
+                            onDobSelected = { passengerForms[index] = form.copy(dob = it) },
+                            modifier = Modifier.fillMaxWidth()
                         )
 
                         Spacer(Modifier.height(8.dp))
@@ -298,7 +446,7 @@ fun PassengerDetailsScreen(
                 Spacer(Modifier.height(12.dp))
             }
 
-            // Contact info
+            // ── Contact info ─────────────────────────────────────────────────
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
@@ -306,15 +454,15 @@ fun PassengerDetailsScreen(
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Contact Information", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = BrandPrimary)
+                    Text(
+                        "Contact Information",
+                        fontWeight = FontWeight.Bold, fontSize = 15.sp, color = BrandPrimary
+                    )
                     Spacer(Modifier.height(12.dp))
 
                     OutlinedTextField(
                         value = contactEmail,
-                        onValueChange = {
-                            contactEmail = it
-                            emailError = null
-                        },
+                        onValueChange = { contactEmail = it; emailError = null },
                         label = { Text("Email Address") },
                         singleLine = true,
                         isError = emailError != null,
@@ -322,25 +470,16 @@ fun PassengerDetailsScreen(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(8.dp),
                         keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Email,
-                            imeAction = ImeAction.Next
+                            keyboardType = KeyboardType.Email, imeAction = ImeAction.Next
                         )
                     )
 
                     Spacer(Modifier.height(8.dp))
 
-                    OutlinedTextField(
-                        value = contactPhone,
-                        onValueChange = { contactPhone = it },
-                        label = { Text("Phone Number") },
-                        singleLine = true,
-                        placeholder = { Text("+63 9xx xxx xxxx") },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(8.dp),
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Phone,
-                            imeAction = ImeAction.Done
-                        )
+                    PhoneInputField(
+                        digits = contactPhone,
+                        onDigitsChange = { contactPhone = it },
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
@@ -353,21 +492,24 @@ fun PassengerDetailsScreen(
                     passengerForms.forEach { form ->
                         if (form.firstName.isBlank() || form.lastName.isBlank() ||
                             form.dob.isBlank() || form.passport.isBlank() || form.nationality.isBlank()
-                        ) {
-                            valid = false
-                        }
+                        ) valid = false
                     }
                     if (!android.util.Patterns.EMAIL_ADDRESS.matcher(contactEmail).matches()) {
                         emailError = "Enter a valid email"
                         valid = false
                     }
                     if (valid) {
-                        onContinue(passengerForms.toList(), contactEmail.trim(), contactPhone.trim())
+                        // Store full international number: "+63" + 10-digit local number
+                        val fullPhone = if (contactPhone.length == 10) "+63$contactPhone"
+                                        else contactPhone
+                        onContinue(passengerForms.toList(), contactEmail.trim(), fullPhone)
                     } else {
                         scope.launch { snackbarHostState.showSnackbar("Please fill in all required fields") }
                     }
                 },
-                modifier = Modifier.fillMaxWidth().height(52.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = CtaOrange)
             ) {

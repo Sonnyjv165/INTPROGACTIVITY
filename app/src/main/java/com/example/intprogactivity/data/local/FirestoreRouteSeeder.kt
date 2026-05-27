@@ -14,6 +14,7 @@ object FirestoreRouteSeeder {
     private const val TAG = "FirestoreRouteSeeder"
     private const val COLLECTION = "routes"
 
+    /** Seeds routes only if the collection is currently empty. */
     suspend fun seedIfEmpty(firestore: FirebaseFirestore) {
         try {
             val existing = firestore.collection(COLLECTION).limit(1).get().await()
@@ -21,41 +22,53 @@ object FirestoreRouteSeeder {
                 Log.d(TAG, "Routes collection already seeded — skipping.")
                 return
             }
-
-            Log.d(TAG, "Seeding ${LocalFlightData.routes.size} routes into Firestore…")
-
-            // Firestore batches are limited to 500 operations
-            val entries = LocalFlightData.routes.entries.toList()
-            val batchSize = 400
-            var written = 0
-
-            entries.chunked(batchSize).forEach { chunk ->
-                val batch = firestore.batch()
-                chunk.forEach { (routeKey, templates) ->
-                    val ref = firestore.collection(COLLECTION).document(routeKey)
-                    batch.set(ref, mapOf(
-                        "templates" to templates.map { t ->
-                            mapOf(
-                                "airlineCode"     to t.airlineCode,
-                                "flightNumber"    to t.flightNumber,
-                                "departureHour"   to t.departureHour,
-                                "departureMinute" to t.departureMinute,
-                                "durationMinutes" to t.durationMinutes,
-                                "basePricePhp"    to t.basePricePhp,
-                                "aircraft"        to t.aircraft
-                            )
-                        }
-                    ))
-                }
-                batch.commit().await()
-                written += chunk.size
-                Log.d(TAG, "Batch committed ($written / ${entries.size})")
-            }
-
-            Log.d(TAG, "Seeding complete.")
+            writeRoutes(firestore)
         } catch (e: Exception) {
-            // Non-fatal — app will fall back to local data if Firestore isn't reachable
             Log.e(TAG, "Seeding failed: ${e.message}", e)
         }
+    }
+
+    /** Always writes all routes (overwrites existing documents). Use once to fix missing data. */
+    suspend fun seedAlways(firestore: FirebaseFirestore) {
+        try {
+            Log.d(TAG, "Force-seeding all routes into Firestore…")
+            writeRoutes(firestore)
+        } catch (e: Exception) {
+            Log.e(TAG, "Force-seeding failed: ${e.message}", e)
+        }
+    }
+
+    private suspend fun writeRoutes(firestore: FirebaseFirestore) {
+        Log.d(TAG, "Writing ${LocalFlightData.routes.size} routes into Firestore…")
+
+        // Firestore batches are limited to 500 operations
+        val entries = LocalFlightData.routes.entries.toList()
+        val batchSize = 400
+        var written = 0
+
+        entries.chunked(batchSize).forEach { chunk ->
+            val batch = firestore.batch()
+            chunk.forEach { (routeKey, templates) ->
+                val ref = firestore.collection(COLLECTION).document(routeKey)
+                batch.set(ref, mapOf(
+                    "templates" to templates.map { t ->
+                        mapOf(
+                            "airlineCode"     to t.airlineCode,
+                            "flightNumber"    to t.flightNumber,
+                            "departureHour"   to t.departureHour,
+                            "departureMinute" to t.departureMinute,
+                            "durationMinutes" to t.durationMinutes,
+                            "basePricePhp"    to t.basePricePhp,
+                            "aircraft"        to t.aircraft
+                        )
+                    }
+                ))
+            }
+            batch.commit().await()
+            written += chunk.size
+            Log.d(TAG, "Batch committed ($written / ${entries.size})")
+        }
+
+        Log.d(TAG, "Seeding complete.")
     }
 }

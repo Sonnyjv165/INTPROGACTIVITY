@@ -212,9 +212,9 @@ fun SearchScreen(
                     .padding(4.dp)
             ) {
                 FilterChip(
-                    selected = !isRoundTrip,
-                    onClick = { viewModel.setRoundTrip(false) },
-                    label = { Text("One Way") },
+                    selected = isRoundTrip,
+                    onClick = { viewModel.setRoundTrip(true) },
+                    label = { Text("Round Trip") },
                     modifier = Modifier.weight(1f),
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = BrandPrimary,
@@ -222,9 +222,9 @@ fun SearchScreen(
                     )
                 )
                 FilterChip(
-                    selected = isRoundTrip,
-                    onClick = { viewModel.setRoundTrip(true) },
-                    label = { Text("Round Trip") },
+                    selected = !isRoundTrip,
+                    onClick = { viewModel.setRoundTrip(false) },
+                    label = { Text("One Way") },
                     modifier = Modifier.weight(1f),
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = BrandPrimary,

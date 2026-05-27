@@ -186,7 +186,7 @@ fun ConfirmationScreen(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Filled.AirplanemodeActive, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
                                 Spacer(Modifier.width(8.dp))
-                                Text("TripFlights", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                Text("Trip.com", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                             }
                             Spacer(Modifier.height(4.dp))
                             Text(

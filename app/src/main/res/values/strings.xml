@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">TripFlights</string>
+    <string name="app_name">Trip.com</string>
 
     <!-- Auth -->
     <string name="login_title">Welcome back</string>

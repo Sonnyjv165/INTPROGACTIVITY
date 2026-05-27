@@ -102,6 +102,10 @@
             android:name="searchParamsJson"
             app:argType="string"
             android:defaultValue="" />
+        <argument
+            android:name="isSelectingReturn"
+            app:argType="boolean"
+            android:defaultValue="false" />
         <action
             android:id="@+id/action_results_to_detail"
             app:destination="@id/flightDetailFragment" />
@@ -115,9 +119,16 @@
         <argument
             android:name="flightOfferJson"
             app:argType="string" />
+        <argument
+            android:name="isSelectingReturn"
+            app:argType="boolean"
+            android:defaultValue="false" />
         <action
             android:id="@+id/action_detail_to_passenger"
             app:destination="@id/passengerDetailsFragment" />
+        <action
+            android:id="@+id/action_detail_to_return_results"
+            app:destination="@id/searchResultsFragment" />
     </fragment>
 
     <!-- Booking nested flow -->

@@ -5,8 +5,10 @@ import java.util.UUID
 data class Booking(
     val bookingId: String = UUID.randomUUID().toString(),
     val userId: String = "",
-    val pnr: String = "",
-    val status: BookingStatus = BookingStatus.CONFIRMED,
+    val userEmail: String = "",
+    val userName: String = "",
+    val pnr: String = "",           // maps to confirmCode in Firestore
+    val status: BookingStatus = BookingStatus.PENDING,
     val outboundFlightJson: String = "",
     val returnFlightJson: String? = null,
     val passengers: List<Passenger> = emptyList(),
@@ -18,7 +20,11 @@ data class Booking(
     val travelDate: Long = 0L,
     val originIata: String = "",
     val destinationIata: String = "",
-    val airlineName: String = ""
+    val airlineName: String = "",
+    val cabinClass: String = "ECONOMY",
+    val paymentMethod: String = "GCash",
+    val paymentStatus: String = "PENDING",
+    val promoCode: String? = null
 )
 
 enum class BookingStatus { CONFIRMED, PENDING, CANCELLED, COMPLETED }

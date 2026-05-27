@@ -92,7 +92,7 @@ private fun SplashScreen() {
             )
             Spacer(Modifier.height(16.dp))
             Text(
-                text = "TripFlights",
+                text = "Trip.com",
                 color = Color.White,
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,

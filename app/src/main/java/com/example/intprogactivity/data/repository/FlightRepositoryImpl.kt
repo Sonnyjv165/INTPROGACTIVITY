@@ -23,21 +23,22 @@ class FlightRepositoryImpl @Inject constructor(
 
     override suspend fun searchFlights(params: FlightSearchParams): Result<List<FlightOffer>> {
         return try {
-            // Try Firestore first; fall back to local data if unavailable
-            val routes = try {
-                val remote = flightSource.getRoutes()
+            // Try Firestore `flights` collection first; fall back to local data if unavailable
+            val offers = try {
+                Log.d(TAG, "Searching Firestore flights collection…")
+                val remote = flightSource.searchFlights(params)
                 if (remote.isEmpty()) {
-                    Log.w(TAG, "Firestore returned empty routes — using local fallback")
-                    LocalFlightData.routes
+                    Log.w(TAG, "Firestore returned 0 flights — using local fallback")
+                    buildFlightOffers(LocalFlightData.routes, params)
                 } else {
+                    Log.d(TAG, "Using ${remote.size} Firestore flight(s) ✓")
                     remote
                 }
             } catch (e: Exception) {
                 Log.w(TAG, "Firestore unavailable — using local fallback: ${e.message}")
-                LocalFlightData.routes
+                buildFlightOffers(LocalFlightData.routes, params)
             }
 
-            val offers = buildFlightOffers(routes, params)
             Result.Success(offers)
         } catch (e: Exception) {
             Result.Error(e, e.message ?: "Failed to search flights")

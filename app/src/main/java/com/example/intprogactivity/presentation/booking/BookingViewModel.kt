@@ -184,7 +184,54 @@ class BookingViewModel @Inject constructor(
 
     fun selectedSeat(): String? = _addOns.value.seatSelections.firstOrNull()?.seatNumber
 
-    fun confirmBooking() {
+    /** Returns the set of seats already selected by all OTHER passengers in this booking */
+    fun seatsSelectedByOtherPassengers(excludeIndex: Int): Set<String> =
+        _addOns.value.seatSelections
+            .filter { it.passengerId != excludeIndex.toString() }
+            .mapNotNull { it.seatNumber.ifEmpty { null } }
+            .toSet()
+
+    // ─── Firestore taken seats ─────────────────────────────────────────────────
+
+    private val _firestoreTakenSeats = MutableStateFlow<Set<String>>(emptySet())
+    val firestoreTakenSeats: StateFlow<Set<String>> = _firestoreTakenSeats.asStateFlow()
+
+    /**
+     * Queries Firestore for CONFIRMED bookings on the same flight and collects
+     * all seat numbers already taken.  Falls back silently on any error.
+     */
+    fun loadTakenSeatsFromFirestore(flightNumber: String) {
+        viewModelScope.launch {
+            try {
+                val snapshot = firestore.collection("bookings")
+                    .whereEqualTo("status", "CONFIRMED")
+                    .get().await()
+
+                val taken = mutableSetOf<String>()
+                for (doc in snapshot.documents) {
+                    // Filter to same flight by checking the stored JSON contains the flight number
+                    if (flightNumber.isNotEmpty()) {
+                        val outJson = doc.getString("outboundFlightJson") ?: ""
+                        val retJson = doc.getString("returnFlightJson") ?: ""
+                        if (flightNumber !in outJson && flightNumber !in retJson) continue
+                    }
+                    @Suppress("UNCHECKED_CAST")
+                    val addOnsMap = doc.get("addOns") as? Map<String, Any> ?: continue
+                    @Suppress("UNCHECKED_CAST")
+                    val seatsList = addOnsMap["seatSelections"] as? List<Map<String, Any>> ?: continue
+                    for (seat in seatsList) {
+                        val seatNum = seat["seatNumber"] as? String ?: continue
+                        if (seatNum.isNotEmpty()) taken.add(seatNum)
+                    }
+                }
+                _firestoreTakenSeats.value = taken
+            } catch (_: Exception) {
+                // Silently ignore — fallback to hardcoded taken seats
+            }
+        }
+    }
+
+    fun confirmBooking(paymentMethod: String = "GCash") {
         val offer = _flightOffer.value ?: return
         val passengers = _passengers.value
         if (passengers.isEmpty()) return
@@ -201,7 +248,10 @@ class BookingViewModel @Inject constructor(
                 passengers = passengers,
                 addOns = _addOns.value,
                 user = user,
-                overrideTotalPrice = totalPrice()
+                overrideTotalPrice = totalPrice(),
+                paymentMethod = paymentMethod,
+                promoCode = _appliedPromo.value?.code,
+                cabinClass = _selectedCabinClass.value
             )) {
                 is Result.Success -> _bookingState.value = UiState.Success(result.data.bookingId)
                 is Result.Error -> _bookingState.value = UiState.Error(result.exception.message ?: "Booking failed")

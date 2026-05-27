@@ -22,7 +22,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="TripFlights"
+            android:text="Trip.com"
             android:textColor="@color/brand_on_primary"
             android:textSize="32sp"
             android:textStyle="bold"

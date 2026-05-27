@@ -247,7 +247,7 @@ fun HomeScreen(
                                 else -> "Good evening, $name"
                             }
                         }
-                        else -> "Welcome to TripFlights"
+                        else -> "Welcome to Trip.com"
                     }
                     Text(
                         text = greeting,
@@ -310,9 +310,9 @@ fun HomeScreen(
                         horizontalArrangement = Arrangement.spacedBy(0.dp)
                     ) {
                         FilterChip(
-                            selected = !isRoundTrip,
-                            onClick = { viewModel.setRoundTrip(false) },
-                            label = { Text("One Way") },
+                            selected = isRoundTrip,
+                            onClick = { viewModel.setRoundTrip(true) },
+                            label = { Text("Round Trip") },
                             modifier = Modifier.weight(1f),
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = BrandPrimary,
@@ -320,9 +320,9 @@ fun HomeScreen(
                             )
                         )
                         FilterChip(
-                            selected = isRoundTrip,
-                            onClick = { viewModel.setRoundTrip(true) },
-                            label = { Text("Round Trip") },
+                            selected = !isRoundTrip,
+                            onClick = { viewModel.setRoundTrip(false) },
+                            label = { Text("One Way") },
                             modifier = Modifier.weight(1f),
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = BrandPrimary,

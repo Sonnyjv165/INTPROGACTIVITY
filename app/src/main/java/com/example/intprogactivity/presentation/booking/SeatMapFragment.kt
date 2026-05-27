@@ -36,6 +36,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -100,8 +101,18 @@ fun SeatMapScreen(
     onDone: () -> Unit
 ) {
     val passengers by viewModel.passengers.collectAsStateWithLifecycle()
+    val firestoreTakenSeats by viewModel.firestoreTakenSeats.collectAsStateWithLifecycle()
+    val addOns by viewModel.addOns.collectAsStateWithLifecycle()
     var currentPassengerIndex by remember { mutableStateOf(0) }
     var selectedSeat by remember { mutableStateOf<String?>(null) }
+
+    // Load Firestore taken seats once when the screen appears
+    val flightOffer by viewModel.flightOffer.collectAsStateWithLifecycle()
+    LaunchedEffect(Unit) {
+        val flightNumber = flightOffer?.itineraries
+            ?.firstOrNull()?.segments?.firstOrNull()?.number ?: ""
+        viewModel.loadTakenSeatsFromFirestore(flightNumber)
+    }
 
     val passengerLabel = if (passengers.isNotEmpty()) {
         val p = passengers.getOrNull(currentPassengerIndex)
@@ -112,8 +123,22 @@ fun SeatMapScreen(
         "Select your seat"
     }
 
-    // Generate seat items (7 columns: A B C [aisle] D E F)
-    val seatItems = remember {
+    // Seats taken by OTHER passengers in this same booking (not the current one).
+    // addOns is observed as state so this re-derives whenever a seat is saved.
+    val bookingTakenSeats = remember(currentPassengerIndex, addOns) {
+        addOns.seatSelections
+            .filter { it.passengerId != currentPassengerIndex.toString() }
+            .mapNotNull { it.seatNumber.ifEmpty { null } }
+            .toSet()
+    }
+
+    // Combined taken seats: hardcoded + Firestore bookings + other passengers in this booking
+    val allTakenSeats = remember(firestoreTakenSeats, bookingTakenSeats) {
+        TAKEN_SEATS + firestoreTakenSeats + bookingTakenSeats
+    }
+
+    // Generate seat items — recomputes whenever allTakenSeats changes
+    val seatItems = remember(allTakenSeats) {
         buildList {
             for (row in 1..30) {
                 for (colIdx in 0..6) {
@@ -122,7 +147,7 @@ fun SeatMapScreen(
                     } else {
                         val actualCol = if (colIdx < 3) colIdx else colIdx - 1
                         val label = "$row${COLUMNS[actualCol]}"
-                        add(SeatData(label, if (label in TAKEN_SEATS) SeatType.TAKEN else SeatType.AVAILABLE))
+                        add(SeatData(label, if (label in allTakenSeats) SeatType.TAKEN else SeatType.AVAILABLE))
                     }
                 }
             }
@@ -217,12 +242,15 @@ fun SeatMapScreen(
                 }
                 Button(
                     onClick = {
+                        // Save the seat for the current passenger before moving on
                         if (selectedSeat != null) {
                             viewModel.setSeatSelection(currentPassengerIndex, selectedSeat!!)
                         }
-                        currentPassengerIndex++
                         val total = passengers.size
-                        if (currentPassengerIndex < total) {
+                        if (currentPassengerIndex < total - 1) {
+                            // Advance to next passenger — bookingTakenSeats will now include
+                            // the seat we just saved, preventing the next passenger from picking it
+                            currentPassengerIndex++
                             selectedSeat = viewModel.getSeatForPassenger(currentPassengerIndex)
                         } else {
                             onDone()

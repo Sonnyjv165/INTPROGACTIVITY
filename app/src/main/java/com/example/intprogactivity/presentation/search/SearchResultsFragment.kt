@@ -99,6 +99,8 @@ class SearchResultsFragment : Fragment() {
             runCatching { gson.fromJson(paramsJson, FlightSearchParams::class.java) }.getOrNull()
         else null
 
+        val isSelectingReturn = arguments?.getBoolean("isSelectingReturn", false) ?: false
+
         if (parsed == null) {
             return ComposeView(requireContext()).also {
                 it.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
@@ -115,11 +117,15 @@ class SearchResultsFragment : Fragment() {
                     SearchResultsScreen(
                         viewModel = viewModel,
                         searchParams = searchParams,
+                        isSelectingReturn = isSelectingReturn,
                         onBack = { findNavController().navigateUp() },
                         onOfferClick = { offer ->
                             val bundle = Bundle().apply {
                                 putString("flightOfferJson", gson.toJson(offer))
-                                putBoolean("isRoundTrip", searchParams.isRoundTrip())
+                                // When selecting return, mark this detail as "isSelectingReturn"
+                                // When selecting outbound on a round-trip, mark as "isRoundTrip"
+                                putBoolean("isRoundTrip", searchParams.isRoundTrip() && !isSelectingReturn)
+                                putBoolean("isSelectingReturn", isSelectingReturn)
                                 putString("returnDate", searchParams.returnDate ?: "")
                                 putString("searchParamsJson", gson.toJson(searchParams))
                             }
@@ -141,6 +147,7 @@ class SearchResultsFragment : Fragment() {
 fun SearchResultsScreen(
     viewModel: SearchViewModel,
     searchParams: FlightSearchParams,
+    isSelectingReturn: Boolean = false,
     onBack: () -> Unit,
     onOfferClick: (FlightOffer) -> Unit
 ) {
@@ -161,6 +168,14 @@ fun SearchResultsScreen(
             TopAppBar(
                 title = {
                     Column {
+                        if (isSelectingReturn) {
+                            Text(
+                                "Select Return Flight",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp,
+                                color = Color.White.copy(alpha = 0.85f)
+                            )
+                        }
                         Text(
                             "${searchParams.origin} → ${searchParams.destination}",
                             fontWeight = FontWeight.Bold,
@@ -169,7 +184,7 @@ fun SearchResultsScreen(
                         Text(
                             "${searchParams.departureDate} · ${searchParams.passengerSummary()}",
                             fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = Color.White.copy(alpha = 0.75f)
                         )
                     }
                 },
@@ -179,7 +194,7 @@ fun SearchResultsScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = BrandPrimary,
+                    containerColor = if (isSelectingReturn) Color(0xFF0052B0) else BrandPrimary,
                     titleContentColor = Color.White,
                     navigationIconContentColor = Color.White
                 )

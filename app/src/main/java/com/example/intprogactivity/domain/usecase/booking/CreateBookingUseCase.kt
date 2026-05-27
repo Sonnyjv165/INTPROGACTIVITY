@@ -22,7 +22,10 @@ class CreateBookingUseCase @Inject constructor(
         passengers: List<Passenger>,
         addOns: AddOns,
         user: User,
-        overrideTotalPrice: Double? = null
+        overrideTotalPrice: Double? = null,
+        paymentMethod: String = "GCash",
+        promoCode: String? = null,
+        cabinClass: String = "ECONOMY"
     ): Result<Booking> {
         // Business rule: Guests cannot book
         if (user.membershipTier == MembershipTier.GUEST)
@@ -45,8 +48,10 @@ class CreateBookingUseCase @Inject constructor(
         val booking = Booking(
             bookingId = UUID.randomUUID().toString(),
             userId = user.uid,
-            pnr = generatePNR(),
-            status = BookingStatus.CONFIRMED,
+            userEmail = user.email,
+            userName = user.fullName().ifBlank { user.email },
+            pnr = generateConfirmCode(),
+            status = BookingStatus.PENDING,
             outboundFlightJson = gson.toJson(flightOffer),
             returnFlightJson = returnFlight?.let { gson.toJson(it) },
             passengers = passengers,
@@ -56,9 +61,13 @@ class CreateBookingUseCase @Inject constructor(
             tripCoinsEarned = coinsEarned,
             createdAt = System.currentTimeMillis(),
             travelDate = firstSeg?.departure?.at?.let { parseTimestamp(it) } ?: 0L,
-            originIata = firstSeg?.departure?.iataCode ?: flightOffer.itineraries.firstOrNull()?.segments?.firstOrNull()?.departure?.iataCode ?: "",
+            originIata = firstSeg?.departure?.iataCode ?: "",
             destinationIata = flightOffer.itineraries.firstOrNull()?.segments?.lastOrNull()?.arrival?.iataCode ?: "",
-            airlineName = flightOffer.primaryAirlineCode()
+            airlineName = flightOffer.primaryAirlineCode(),
+            cabinClass = cabinClass,
+            paymentMethod = paymentMethod,
+            paymentStatus = "PENDING",
+            promoCode = promoCode
         )
 
         val result = bookingRepository.createBooking(booking)
@@ -89,8 +98,11 @@ class CreateBookingUseCase @Inject constructor(
         }
     }
 
-    private fun generatePNR(): String =
-        (1..6).map { ('A'..'Z').random() }.joinToString("")
+    /** Generates a 10-character alphanumeric confirm code matching web format, e.g. "TR7C553FD7" */
+    private fun generateConfirmCode(): String {
+        val chars = ('A'..'Z') + ('0'..'9')
+        return (1..10).map { chars.random() }.joinToString("")
+    }
 
     private fun parseTimestamp(isoDatetime: String): Long = try {
         java.time.ZonedDateTime.parse(isoDatetime).toInstant().toEpochMilli()

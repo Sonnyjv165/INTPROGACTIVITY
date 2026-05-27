@@ -61,7 +61,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.intprogactivity.R
-import com.example.intprogactivity.data.local.LocalFlightData
 import com.example.intprogactivity.domain.model.FlightOffer
 import com.example.intprogactivity.domain.model.FlightSearchParams
 import com.example.intprogactivity.presentation.booking.BookingViewModel
@@ -89,6 +88,7 @@ class FlightDetailFragment : Fragment() {
         val offerJson = arguments?.getString("flightOfferJson") ?: ""
         val offer = gson.fromJson(offerJson, FlightOffer::class.java)
         val isRoundTrip = arguments?.getBoolean("isRoundTrip", false) ?: false
+        val isSelectingReturn = arguments?.getBoolean("isSelectingReturn", false) ?: false
         val spJson = arguments?.getString("searchParamsJson") ?: ""
         val searchParams = if (spJson.isNotEmpty())
             runCatching { gson.fromJson(spJson, FlightSearchParams::class.java) }.getOrNull()
@@ -101,33 +101,56 @@ class FlightDetailFragment : Fragment() {
                     FlightDetailScreen(
                         offer = offer,
                         isRoundTrip = isRoundTrip,
+                        isSelectingReturn = isSelectingReturn,
                         searchParams = searchParams,
                         onBack = { findNavController().navigateUp() },
                         onBookNow = { selectedCabin ->
                             bookingViewModel.setCabinClass(selectedCabin)
-                            val bundle = Bundle().apply {
-                                putString("flightOfferJson", offerJson)
-                                putString("returnFlightJson", "")
-                                putInt("adults", searchParams?.adults ?: 1)
-                                putInt("children", searchParams?.children ?: 0)
-                                putInt("infants", searchParams?.infants ?: 0)
-                            }
-                            if (isRoundTrip && searchParams != null) {
-                                val returnDate = searchParams.returnDate ?: ""
-                                if (returnDate.isNotEmpty()) {
+
+                            when {
+                                // Step 1 of round-trip: outbound selected → navigate to return flight selection
+                                isRoundTrip && !isSelectingReturn && searchParams != null -> {
+                                    bookingViewModel.setFlightOffer(offer)
+                                    val returnDate = searchParams.returnDate ?: ""
                                     val returnParams = searchParams.copy(
                                         origin = searchParams.destination,
                                         destination = searchParams.origin,
-                                        departureDate = returnDate,
+                                        departureDate = returnDate.ifEmpty { searchParams.departureDate },
                                         returnDate = null
                                     )
-                                    val returnFlight = LocalFlightData.searchFlights(returnParams).firstOrNull()
-                                    if (returnFlight != null) {
-                                        bundle.putString("returnFlightJson", gson.toJson(returnFlight))
+                                    val bundle = Bundle().apply {
+                                        putString("searchParamsJson", gson.toJson(returnParams))
+                                        putBoolean("isSelectingReturn", true)
                                     }
+                                    findNavController().navigate(R.id.action_detail_to_return_results, bundle)
+                                }
+
+                                // Step 2 of round-trip: return flight confirmed → go to passenger details
+                                isSelectingReturn -> {
+                                    val outboundOffer = bookingViewModel.flightOffer.value
+                                    val outboundJson = if (outboundOffer != null) gson.toJson(outboundOffer) else offerJson
+                                    val bundle = Bundle().apply {
+                                        putString("flightOfferJson", outboundJson)
+                                        putString("returnFlightJson", offerJson)
+                                        putInt("adults", searchParams?.adults ?: 1)
+                                        putInt("children", searchParams?.children ?: 0)
+                                        putInt("infants", searchParams?.infants ?: 0)
+                                    }
+                                    findNavController().navigate(R.id.action_detail_to_passenger, bundle)
+                                }
+
+                                // One-way booking: go directly to passenger details
+                                else -> {
+                                    val bundle = Bundle().apply {
+                                        putString("flightOfferJson", offerJson)
+                                        putString("returnFlightJson", "")
+                                        putInt("adults", searchParams?.adults ?: 1)
+                                        putInt("children", searchParams?.children ?: 0)
+                                        putInt("infants", searchParams?.infants ?: 0)
+                                    }
+                                    findNavController().navigate(R.id.action_detail_to_passenger, bundle)
                                 }
                             }
-                            findNavController().navigate(R.id.action_detail_to_passenger, bundle)
                         }
                     )
                 }
@@ -141,6 +164,7 @@ class FlightDetailFragment : Fragment() {
 fun FlightDetailScreen(
     offer: FlightOffer,
     isRoundTrip: Boolean,
+    isSelectingReturn: Boolean = false,
     searchParams: FlightSearchParams?,
     onBack: () -> Unit,
     onBookNow: (String) -> Unit
@@ -170,7 +194,9 @@ fun FlightDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Flight Details") },
+                title = {
+                    Text(if (isSelectingReturn) "Return Flight Details" else "Flight Details")
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -362,7 +388,11 @@ fun FlightDetailScreen(
                 colors = ButtonDefaults.buttonColors(containerColor = CtaOrange)
             ) {
                 Text(
-                    if (isRoundTrip) "Book Round Trip" else "Book Now",
+                    when {
+                        isSelectingReturn -> "Confirm Return Flight"
+                        isRoundTrip -> "Select Return Flight"
+                        else -> "Book Now"
+                    },
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )

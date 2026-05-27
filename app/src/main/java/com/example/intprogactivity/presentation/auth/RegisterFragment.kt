@@ -148,7 +148,7 @@ fun RegisterScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Join TripFlights",
+                text = "Join Trip.com",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground

@@ -40,7 +40,7 @@ class HomeViewModel @Inject constructor(
     private val _destination = MutableStateFlow<Airport?>(null)
     val destination: StateFlow<Airport?> = _destination.asStateFlow()
 
-    private val _isRoundTrip = MutableStateFlow(false)
+    private val _isRoundTrip = MutableStateFlow(true)
     val isRoundTrip: StateFlow<Boolean> = _isRoundTrip.asStateFlow()
 
     private val _departDate = MutableStateFlow<String?>(null)
