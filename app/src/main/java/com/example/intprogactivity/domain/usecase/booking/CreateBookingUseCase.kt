@@ -87,11 +87,12 @@ class CreateBookingUseCase @Inject constructor(
             else -> return
         }
         val newTier = MembershipTier.evaluate(
-            currentTier = updatedUser.membershipTier,
-            totalBookings = updatedUser.totalBookings,
-            bookingsInLastYear = updatedUser.totalBookings,
-            totalSpend = updatedUser.totalSpend,
-            spendInLastYear = updatedUser.totalSpend
+            currentTier       = updatedUser.membershipTier,
+            totalBookings     = updatedUser.totalBookings,
+            confirmedBookings = updatedUser.confirmedBookings,
+            bookingsInLastYear = updatedUser.confirmedBookings,
+            totalSpend        = updatedUser.totalSpend,
+            spendInLastYear   = updatedUser.totalSpend
         )
         if (newTier != updatedUser.membershipTier) {
             userRepository.updateMembershipTier(user.uid, newTier)

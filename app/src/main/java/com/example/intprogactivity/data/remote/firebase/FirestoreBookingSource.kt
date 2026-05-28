@@ -143,17 +143,29 @@ fun Map<String, Any>.toBooking(): Booking? = try {
     val leg0 = legs?.getOrNull(0) as? Map<*, *>
     val leg1 = legs?.getOrNull(1) as? Map<*, *>
 
-    // ── outboundFlightJson: rebuild from legs[0] if not present ───────────
+    // ── outboundFlightJson ─────────────────────────────────────────────────
+    // Priority: stored JSON → legs[0] → build from root-level fields
     val storedOutboundJson = this["outboundFlightJson"] as? String
-    val outboundFlightJson: String =
-        (if (!storedOutboundJson.isNullOrBlank()) storedOutboundJson
-         else legToFlightOfferJson(leg0)) ?: ""
+    val outboundFlightJson: String = when {
+        !storedOutboundJson.isNullOrBlank() -> storedOutboundJson
+        leg0 != null -> legToFlightOfferJson(leg0) ?: buildRootLevelFlightJson(this, isReturn = false)
+        else -> buildRootLevelFlightJson(this, isReturn = false)
+    } ?: ""
 
-    // ── returnFlightJson: rebuild from legs[1] if not present ────────────
+    // ── returnFlightJson ───────────────────────────────────────────────────
+    // Priority: stored JSON → legs[1] → returnFlight map → root return fields
     val storedReturnJson = this["returnFlightJson"] as? String
-    val returnFlightJson: String? =
-        if (!storedReturnJson.isNullOrBlank()) storedReturnJson
-        else legToFlightOfferJson(leg1)
+    val returnFlightJson: String? = when {
+        !storedReturnJson.isNullOrBlank() -> storedReturnJson
+        leg1 != null -> legToFlightOfferJson(leg1)
+        else -> {
+            // Try a nested `returnFlight` object
+            val retMap = this["returnFlight"] as? Map<*, *>
+                ?: this["return"] as? Map<*, *>
+            if (retMap != null) legToFlightOfferJson(retMap)
+            else buildRootLevelFlightJson(this, isReturn = true)
+        }
+    }
 
     Booking(
         bookingId    = this["bookingId"]  as? String ?: "",
@@ -212,6 +224,58 @@ private fun legToFlightOfferJson(leg: Map<*, *>?): String? {
     fun String.esc() = replace("\"", "\\\"")
 
     return """{"id":"${fullFlight.esc()}","itineraries":[{"duration":"","segments":[{"departure":{"iataCode":"${depart.esc()}","at":"${departIso.esc()}"},"arrival":{"iataCode":"${arrival.esc()}","at":"${arriveIso.esc()}"},"carrierCode":"${airlineCode.esc()}","number":"${flightNum.esc()}","aircraft":{"code":""},"operating":{"carrierCode":"${airlineCode.esc()}"},"duration":"","id":"1","numberOfStops":0}]}],"price":{"currency":"PHP","total":"$fare","grandTotal":"$fare"},"travelerPricings":[]}"""
+}
+
+/**
+ * Builds a minimal FlightOffer JSON from root-level booking document fields.
+ * Used when the booking has no legs[] and no stored JSON (common in web-created bookings).
+ *
+ * For outbound:  reads depart / arrival / departDate / arriveDate / airlineCode / flightNumber
+ * For return:    reads returnDepart / returnArrival / returnDepartDate / returnArriveDate etc.
+ *                (these are alternative root-level field names some web platforms use)
+ */
+private fun buildRootLevelFlightJson(doc: Map<*, *>, isReturn: Boolean): String? {
+    val depart: String?
+    val arrival: String?
+    val departRaw: Any?
+    val arriveRaw: Any?
+    val airlineCode: String
+    val flightNumber: String
+    val fare: Double
+
+    if (isReturn) {
+        // Try common return-flight root-level field name variations
+        depart      = (doc["returnDepart"]      ?: doc["return_depart"]      ?: doc["retDepart"])      as? String
+        arrival     = (doc["returnArrival"]     ?: doc["return_arrival"]     ?: doc["retArrival"])     as? String
+        departRaw   = doc["returnDepartDate"]   ?: doc["return_departDate"]  ?: doc["retDepartDate"]
+        arriveRaw   = doc["returnArriveDate"]   ?: doc["return_arriveDate"]  ?: doc["retArriveDate"]
+        airlineCode = (doc["returnAirlineCode"] ?: doc["airlineCode"] ?: "") as? String ?: ""
+        flightNumber = (doc["returnFlightNumber"] ?: doc["return_flightNumber"] ?: "") as? String ?: ""
+        fare        = ((doc["returnFare"] ?: doc["return_fare"]) as? Number)?.toDouble() ?: 0.0
+        // If no explicit return origin/destination, we cannot show a return card
+        if (depart.isNullOrEmpty() || arrival.isNullOrEmpty()) return null
+    } else {
+        depart      = (doc["depart"]      ?: doc["originIata"])      as? String
+        arrival     = (doc["arrival"]     ?: doc["destinationIata"]) as? String
+        departRaw   = doc["departDate"]   ?: doc["travelDate"]
+        arriveRaw   = doc["arriveDate"]
+        airlineCode = (doc["airlineCode"] ?: "") as? String ?: ""
+        flightNumber = (doc["flightNumber"] ?: "") as? String ?: ""
+        fare        = (doc["fare"] as? Number)?.toDouble()
+            ?: (doc["total"] as? Number)?.toDouble() ?: 0.0
+        if (depart.isNullOrEmpty() && arrival.isNullOrEmpty()) return null
+    }
+
+    val departIso = timestampOrMillisToIso(departRaw)
+    val arriveIso = timestampOrMillisToIso(arriveRaw)
+    val numOnly   = if (flightNumber.startsWith(airlineCode) && airlineCode.isNotEmpty())
+        flightNumber.removePrefix(airlineCode) else flightNumber
+
+    fun String.esc() = replace("\"", "\\\"")
+    val d = (depart  ?: "").esc()
+    val a = (arrival ?: "").esc()
+
+    return """{"id":"${flightNumber.esc()}","itineraries":[{"duration":"","segments":[{"departure":{"iataCode":"$d","at":"${departIso.esc()}"},"arrival":{"iataCode":"$a","at":"${arriveIso.esc()}"},"carrierCode":"${airlineCode.esc()}","number":"${numOnly.esc()}","aircraft":{"code":""},"operating":{"carrierCode":"${airlineCode.esc()}"},"duration":"","id":"1","numberOfStops":0}]}],"price":{"currency":"PHP","total":"$fare","grandTotal":"$fare"},"travelerPricings":[]}"""
 }
 
 private fun timestampOrMillisToIso(raw: Any?): String = when (raw) {

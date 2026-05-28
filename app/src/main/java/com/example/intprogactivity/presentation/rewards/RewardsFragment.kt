@@ -209,27 +209,29 @@ private fun CoinBalanceCard(user: User) {
 
 @Composable
 private fun TierProgressCard(user: User) {
-    val tier = user.membershipTier
-    val bookings = user.totalBookings
-    val spend = user.totalSpend
+    val tier      = user.membershipTier
+    val confirmed = user.confirmedBookings   // only CONFIRMED bookings count toward Gold
+    val bookings  = user.totalBookings       // used for display/other tiers
+    val spend     = user.totalSpend
 
     val (nextTierName, progress, hint) = when (tier) {
         MembershipTier.SILVER -> Triple(
             "Gold",
-            minOf((bookings / 5.0f), 1f),
-            if (bookings >= 5) "Tier upgrade pending" else "Book ${5 - bookings} more flight${if (5 - bookings != 1) "s" else ""} to reach Gold"
+            minOf((confirmed / 5.0f), 1f),
+            if (confirmed >= 5) "Tier upgrade pending"
+            else "${confirmed}/5 confirmed bookings — ${5 - confirmed} more to reach Gold"
         )
         MembershipTier.GOLD -> {
-            val p = minOf(((bookings / 10.0f) + (spend.toFloat() / 50_000.0f)) / 2f, 1f)
+            val p = minOf(((confirmed / 10.0f) + (spend.toFloat() / 50_000.0f)) / 2f, 1f)
             Triple(
                 "Platinum",
                 p,
-                "Need 10 bookings (${bookings}/10) + ₱50,000 spend (₱${String.format("%,.0f", spend)}/₱50,000)"
+                "Need 10 confirmed bookings ($confirmed/10) + ₱50,000 spend (₱${String.format("%,.0f", spend)}/₱50,000)"
             )
         }
         MembershipTier.PLATINUM -> {
-            val p = minOf(((bookings / 25.0f) + (spend.toFloat() / 500_000.0f)) / 2f, 1f)
-            Triple("Diamond", p, "Need 25 bookings (${bookings}/25) + ₱500,000 spend for Diamond")
+            val p = minOf(((confirmed / 25.0f) + (spend.toFloat() / 500_000.0f)) / 2f, 1f)
+            Triple("Diamond", p, "Need 25 confirmed bookings ($confirmed/25) + ₱500,000 spend for Diamond")
         }
         MembershipTier.DIAMOND -> {
             val p = minOf((spend.toFloat() / 2_000_000.0f), 1f)

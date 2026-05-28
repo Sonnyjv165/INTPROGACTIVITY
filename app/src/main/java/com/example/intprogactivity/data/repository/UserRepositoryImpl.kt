@@ -99,6 +99,13 @@ class UserRepositoryImpl @Inject constructor(
         Result.Error(e, e.message)
     }
 
+    override suspend fun incrementConfirmedBookings(uid: String): Result<Unit> = try {
+        userSource.incrementConfirmedBookings(uid)
+        Result.Success(Unit)
+    } catch (e: Exception) {
+        Result.Error(e, e.message)
+    }
+
     override suspend fun getTripCoinHistory(uid: String): Result<List<TripCoinTransaction>> = try {
         val rawList = userSource.getCoinHistory(uid)
         val txList = rawList.map { data ->

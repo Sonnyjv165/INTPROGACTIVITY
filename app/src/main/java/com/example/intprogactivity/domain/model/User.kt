@@ -19,6 +19,7 @@ data class User(
     val membershipTier: MembershipTier = MembershipTier.SILVER,
     val loyaltyPoints: Int = 0,         // matches web field "loyaltyPoints" (was tripCoins)
     val totalBookings: Int = 0,
+    val confirmedBookings: Int = 0,   // only CONFIRMED bookings — used for tier evaluation
     val totalSpend: Double = 0.0,
     val tierExpiryDate: Long? = null,
     val createdAt: Long = System.currentTimeMillis()
@@ -139,6 +140,7 @@ enum class MembershipTier {
         fun evaluate(
             currentTier: MembershipTier,
             totalBookings: Int,
+            confirmedBookings: Int,
             bookingsInLastYear: Int,
             totalSpend: Double,
             spendInLastYear: Double
@@ -148,7 +150,7 @@ enum class MembershipTier {
                 spendInLastYear >= 2_000_000.0 && currentTier == DIAMOND -> DIAMOND_PLUS
                 bookingsInLastYear >= 25 && spendInLastYear >= 500_000.0 && currentTier == PLATINUM -> DIAMOND
                 bookingsInLastYear >= 10 && spendInLastYear >= 50_000.0 && currentTier == GOLD -> PLATINUM
-                totalBookings >= 5 && currentTier == SILVER -> GOLD
+                confirmedBookings >= 5 && currentTier == SILVER -> GOLD
                 else -> currentTier
             }
         }

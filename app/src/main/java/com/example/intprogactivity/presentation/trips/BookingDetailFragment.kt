@@ -23,8 +23,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.AirplanemodeActive
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.FlightLand
 import androidx.compose.material.icons.filled.FlightTakeoff
@@ -494,7 +492,7 @@ private fun BoardingPassLayout(
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            imageVector = if (isReturn) Icons.Filled.FlightLand else Icons.Filled.AirplanemodeActive,
+                            imageVector = if (isReturn) Icons.Filled.FlightLand else Icons.Filled.FlightTakeoff,
                             contentDescription = null,
                             tint = accentColor,
                             modifier = Modifier.size(18.dp)
@@ -610,7 +608,7 @@ private fun BoardingPassLayout(
                         value = dateStr
                     )
                     FlightDetailChip(
-                        icon  = Icons.Filled.AirplanemodeActive,
+                        icon  = if (isReturn) Icons.Filled.FlightLand else Icons.Filled.FlightTakeoff,
                         label = "Flight",
                         value = flightNum
                     )

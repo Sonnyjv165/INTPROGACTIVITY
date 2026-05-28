@@ -117,13 +117,16 @@ private fun Booking.toWebMap(gson: Gson): Map<String, Any?> {
         "userName"      to userName,
 
         // ── Android-side extras (kept for backwards compat with app) ──────
-        "currency"        to currency,
-        "tripCoinsEarned" to tripCoinsEarned,
-        "travelDate"      to travelDate,
-        "addOnsInsurance" to addOns.travelInsurance,
-        "seatSelections"  to addOns.seatSelections.map { s ->
+        "currency"           to currency,
+        "tripCoinsEarned"    to tripCoinsEarned,
+        "travelDate"         to travelDate,
+        "addOnsInsurance"    to addOns.travelInsurance,
+        "seatSelections"     to addOns.seatSelections.map { s ->
             mapOf("passengerId" to s.passengerId, "segmentId" to s.segmentId, "seatNumber" to s.seatNumber)
-        }
+        },
+        // Store full JSON so Android can always read back both flights without legs parsing
+        "outboundFlightJson" to outboundFlightJson.ifBlank { null },
+        "returnFlightJson"   to returnFlightJson
     )
 }
 

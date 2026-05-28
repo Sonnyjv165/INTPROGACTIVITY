@@ -52,8 +52,18 @@ class FirestoreUserSource @Inject constructor(
             val currentSpend = (snap.getDouble("totalSpend") ?: 0.0) + spend
             tx.update(ref, mapOf(
                 "totalBookings" to currentBookings,
-                "totalSpend" to currentSpend
+                "totalSpend"    to currentSpend
             ))
+        }.await()
+    }
+
+    /** Called when a booking transitions to CONFIRMED status — increments the confirmed counter. */
+    suspend fun incrementConfirmedBookings(uid: String) {
+        firestore.runTransaction { tx ->
+            val ref = usersCol().document(uid)
+            val snap = tx.get(ref)
+            val current = (snap.getLong("confirmedBookings") ?: 0L) + 1
+            tx.update(ref, "confirmedBookings", current)
         }.await()
     }
 
@@ -117,7 +127,8 @@ fun Map<String, Any>.toUser(uid: String): User {
         loyaltyPoints = (this["loyaltyPoints"] as? Long)?.toInt()    // web field name: "loyaltyPoints"
                             ?: (this["tripCoins"] as? Long)?.toInt()  // backwards-compat with old docs
                             ?: 0,
-        totalBookings = (this["totalBookings"] as? Long)?.toInt() ?: 0,
+        totalBookings     = (this["totalBookings"]     as? Long)?.toInt() ?: 0,
+        confirmedBookings = (this["confirmedBookings"] as? Long)?.toInt() ?: 0,
         totalSpend    = (this["totalSpend"] as? Double)
                             ?: (this["totalSpend"] as? Long)?.toDouble() ?: 0.0,
         tierExpiryDate = this["tierExpiryDate"] as? Long,

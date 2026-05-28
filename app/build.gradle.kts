@@ -7,7 +7,7 @@ plugins {
     alias(libs.plugins.kotlin.kapt)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.google.services)
-}
+1}
 
 val localProps = Properties().apply {
     val f = rootProject.file("local.properties")

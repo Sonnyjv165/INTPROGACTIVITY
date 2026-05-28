@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AirplanemodeActive
 import androidx.compose.material.icons.filled.AirplaneTicket
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.FlightLand
 import androidx.compose.material.icons.filled.FlightTakeoff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -188,11 +189,27 @@ fun TripsScreen(
 @Composable
 fun BookingCard(booking: Booking, onClick: () -> Unit) {
     val gson = remember { Gson() }
-    val offer = remember(booking.outboundFlightJson) {
+    val outboundOffer = remember(booking.outboundFlightJson) {
         runCatching { gson.fromJson(booking.outboundFlightJson, FlightOffer::class.java) }.getOrNull()
     }
-    val firstSeg = offer?.itineraries?.firstOrNull()?.segments?.firstOrNull()
-    val lastSeg = offer?.itineraries?.firstOrNull()?.segments?.lastOrNull()
+    val returnOffer = remember(booking.returnFlightJson) {
+        booking.returnFlightJson?.takeIf { it.isNotBlank() }
+            ?.let { runCatching { gson.fromJson(it, FlightOffer::class.java) }.getOrNull() }
+    }
+    val firstSeg = outboundOffer?.itineraries?.firstOrNull()?.segments?.firstOrNull()
+    val lastSeg  = outboundOffer?.itineraries?.firstOrNull()?.segments?.lastOrNull()
+    val retFirstSeg = returnOffer?.itineraries?.firstOrNull()?.segments?.firstOrNull()
+    val retLastSeg  = returnOffer?.itineraries?.firstOrNull()?.segments?.lastOrNull()
+
+    // Derive outbound display values
+    val originCode   = firstSeg?.departure?.iataCode?.takeIf { it.isNotEmpty() } ?: booking.originIata
+    val destCode     = lastSeg?.arrival?.iataCode?.takeIf { it.isNotEmpty() } ?: booking.destinationIata
+    val airlineLabel = firstSeg?.carrierCode?.takeIf { it.isNotEmpty() } ?: booking.airlineName
+
+    // Derive return display values
+    val retOrigin = retFirstSeg?.departure?.iataCode?.takeIf { it.isNotEmpty() }
+    val retDest   = retLastSeg?.arrival?.iataCode?.takeIf { it.isNotEmpty() }
+    val isRoundTrip = retOrigin != null && retDest != null
 
     Card(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
@@ -201,18 +218,27 @@ fun BookingCard(booking: Booking, onClick: () -> Unit) {
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // Status badge
+            // ── PNR + status ───────────────────────────────────────────────
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    booking.pnr,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp,
-                    color = BrandPrimary
-                )
+                Column {
+                    Text(
+                        booking.pnr,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp,
+                        color = BrandPrimary
+                    )
+                    if (isRoundTrip) {
+                        Text(
+                            "Round Trip",
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(6.dp))
@@ -228,36 +254,16 @@ fun BookingCard(booking: Booking, onClick: () -> Unit) {
                 }
             }
 
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(12.dp))
 
-            // Derive display values: prefer parsed JSON, fall back to booking fields
-            val originCode = firstSeg?.departure?.iataCode?.takeIf { it.isNotEmpty() }
-                ?: booking.originIata
-            val destCode = lastSeg?.arrival?.iataCode?.takeIf { it.isNotEmpty() }
-                ?: booking.destinationIata
-            val airlineLabel = firstSeg?.carrierCode?.takeIf { it.isNotEmpty() }
-                ?: booking.airlineName
-
+            // ── Outbound route ─────────────────────────────────────────────
             if (originCode.isNotEmpty() || destCode.isNotEmpty()) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        Text(originCode.ifEmpty { "—" }, fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                        Text(airlineLabel, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    Icon(
-                        Icons.Filled.AirplanemodeActive,
-                        contentDescription = null,
-                        tint = BrandPrimary,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Column(horizontalAlignment = Alignment.End) {
-                        Text(destCode.ifEmpty { "—" }, fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                    }
-                }
+                RouteRow(
+                    origin      = originCode.ifEmpty { "—" },
+                    destination = destCode.ifEmpty { "—" },
+                    label       = airlineLabel,
+                    isReturn    = false
+                )
             } else {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Filled.FlightTakeoff, contentDescription = null, tint = BrandPrimary, modifier = Modifier.size(18.dp))
@@ -266,8 +272,22 @@ fun BookingCard(booking: Booking, onClick: () -> Unit) {
                 }
             }
 
-            Spacer(Modifier.height(10.dp))
+            // ── Return route (round trips only) ────────────────────────────
+            if (isRoundTrip) {
+                Spacer(Modifier.height(8.dp))
+                androidx.compose.material3.HorizontalDivider(color = Color(0xFFF3F4F6))
+                Spacer(Modifier.height(8.dp))
+                RouteRow(
+                    origin      = retOrigin ?: "—",
+                    destination = retDest ?: "—",
+                    label       = retFirstSeg?.carrierCode ?: airlineLabel,
+                    isReturn    = true
+                )
+            }
 
+            Spacer(Modifier.height(12.dp))
+
+            // ── Price + details link ───────────────────────────────────────
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -284,6 +304,42 @@ fun BookingCard(booking: Booking, onClick: () -> Unit) {
                     Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = BrandPrimary, modifier = Modifier.size(16.dp))
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun RouteRow(origin: String, destination: String, label: String, isReturn: Boolean) {
+    val tint = if (isReturn) Color(0xFF0052B0) else BrandPrimary
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column {
+            Text(origin, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+            Text(
+                label,
+                fontSize = 11.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                imageVector = if (isReturn) Icons.Filled.FlightLand else Icons.Filled.FlightTakeoff,
+                contentDescription = null,
+                tint = tint,
+                modifier = Modifier.size(22.dp)
+            )
+            Text(
+                if (isReturn) "Return" else "Outbound",
+                fontSize = 9.sp,
+                color = tint,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+        Column(horizontalAlignment = Alignment.End) {
+            Text(destination, fontWeight = FontWeight.Bold, fontSize = 20.sp)
         }
     }
 }
